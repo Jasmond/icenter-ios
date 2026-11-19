@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="messageDocumentUIView">
+            <connections>
+                <outlet property="box" destination="Dyr-sw-ZVp" id="3gl-Uv-ywn"/>
+                <outlet property="filenamebox" destination="zJ7-eS-zjn" id="XYe-mn-WcF"/>
+                <outlet property="filenametitle" destination="JwC-dm-y5O" id="fCk-GG-8Sq"/>
+                <outlet property="imageheightconstraints" destination="0EJ-b3-W4Q" id="jEb-IK-lPc"/>
+                <outlet property="imageview" destination="hyP-TN-mMQ" id="EE4-bP-Wgj"/>
+                <outlet property="videoicon" destination="bIP-NT-Jby" id="ZjN-5a-ogb"/>
+                <outlet property="view" destination="J9V-pp-yb3" id="dzd-T3-Jnh"/>
+                <outlet property="viewbutton" destination="WTV-QQ-iGc" id="yBR-d3-1fV"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="J9V-pp-yb3">
+            <rect key="frame" x="0.0" y="0.0" width="475" height="306"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Dyr-sw-ZVp">
+                    <rect key="frame" x="0.0" y="0.0" width="475" height="306"/>
+                    <subviews>
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" image="missingphotoicon.png" translatesAutoresizingMaskIntoConstraints="NO" id="hyP-TN-mMQ">
+                            <rect key="frame" x="0.0" y="0.0" width="475" height="306"/>
+                            <constraints>
+                                <constraint firstAttribute="height" priority="750" constant="306" id="0EJ-b3-W4Q"/>
+                            </constraints>
+                        </imageView>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zJ7-eS-zjn">
+                            <rect key="frame" x="0.0" y="246" width="475" height="60"/>
+                            <subviews>
+                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="Vwn-za-Sb5">
+                                    <rect key="frame" x="20" y="10" width="435" height="40"/>
+                                    <subviews>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="pdf_icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="Lxo-8b-Lf9">
+                                            <rect key="frame" x="0.0" y="0.0" width="32" height="40"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="32" id="i7Q-ML-sM3"/>
+                                                <constraint firstAttribute="height" constant="40" id="iiU-ns-YlF"/>
+                                            </constraints>
+                                        </imageView>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JwC-dm-y5O">
+                                            <rect key="frame" x="47" y="10" width="388" height="20.5"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </stackView>
+                            </subviews>
+                            <color key="backgroundColor" white="0.89545443020000004" alpha="1" colorSpace="calibratedWhite"/>
+                            <constraints>
+                                <constraint firstItem="Vwn-za-Sb5" firstAttribute="centerY" secondItem="zJ7-eS-zjn" secondAttribute="centerY" id="8Hb-NK-Fc2"/>
+                                <constraint firstItem="Vwn-za-Sb5" firstAttribute="leading" secondItem="zJ7-eS-zjn" secondAttribute="leading" constant="20" id="Sgu-ZI-2yL"/>
+                                <constraint firstAttribute="height" constant="60" id="h5T-lj-yKa"/>
+                                <constraint firstAttribute="trailing" secondItem="Vwn-za-Sb5" secondAttribute="trailing" constant="20" id="r5N-55-Bsc"/>
+                            </constraints>
+                        </view>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstItem="zJ7-eS-zjn" firstAttribute="leading" secondItem="Dyr-sw-ZVp" secondAttribute="leading" id="L3G-9O-E2b"/>
+                        <constraint firstAttribute="trailing" secondItem="hyP-TN-mMQ" secondAttribute="trailing" id="Nz7-Au-pDg"/>
+                        <constraint firstAttribute="bottom" secondItem="hyP-TN-mMQ" secondAttribute="bottom" id="Rf8-QQ-d9c"/>
+                        <constraint firstAttribute="trailing" secondItem="zJ7-eS-zjn" secondAttribute="trailing" id="Zb4-cn-55s"/>
+                        <constraint firstItem="hyP-TN-mMQ" firstAttribute="leading" secondItem="Dyr-sw-ZVp" secondAttribute="leading" id="hD0-l2-Tjb"/>
+                        <constraint firstAttribute="bottom" secondItem="zJ7-eS-zjn" secondAttribute="bottom" id="pn8-8S-DN2"/>
+                        <constraint firstItem="hyP-TN-mMQ" firstAttribute="top" secondItem="Dyr-sw-ZVp" secondAttribute="top" id="z9b-2b-JqE"/>
+                    </constraints>
+                </view>
+                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="play_icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="bIP-NT-Jby">
+                    <rect key="frame" x="207.5" y="123" width="60" height="60"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="60" id="5dD-uN-zmo"/>
+                        <constraint firstAttribute="height" constant="60" id="NVT-Tk-wd9"/>
+                    </constraints>
+                </imageView>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WTV-QQ-iGc">
+                    <rect key="frame" x="0.0" y="0.0" width="475" height="306"/>
+                </button>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="Dyr-sw-ZVp" firstAttribute="top" secondItem="J9V-pp-yb3" secondAttribute="top" id="6qD-e8-5S6"/>
+                <constraint firstItem="bIP-NT-Jby" firstAttribute="centerY" secondItem="J9V-pp-yb3" secondAttribute="centerY" id="Fpe-1g-qpm"/>
+                <constraint firstItem="bIP-NT-Jby" firstAttribute="centerX" secondItem="J9V-pp-yb3" secondAttribute="centerX" id="KgX-Ou-PZG"/>
+                <constraint firstAttribute="bottom" secondItem="WTV-QQ-iGc" secondAttribute="bottom" id="MaH-7M-K48"/>
+                <constraint firstItem="Dyr-sw-ZVp" firstAttribute="leading" secondItem="J9V-pp-yb3" secondAttribute="leading" id="QV1-xC-kGp"/>
+                <constraint firstItem="WTV-QQ-iGc" firstAttribute="leading" secondItem="J9V-pp-yb3" secondAttribute="leading" id="bJt-Wz-FrO"/>
+                <constraint firstItem="WTV-QQ-iGc" firstAttribute="top" secondItem="J9V-pp-yb3" secondAttribute="top" id="gAW-5j-gdM"/>
+                <constraint firstItem="WTV-QQ-iGc" firstAttribute="trailing" secondItem="J9V-pp-yb3" secondAttribute="trailing" id="hcm-Qz-1HW"/>
+                <constraint firstAttribute="bottom" secondItem="Dyr-sw-ZVp" secondAttribute="bottom" id="lHh-ut-UlH"/>
+                <constraint firstAttribute="trailing" secondItem="Dyr-sw-ZVp" secondAttribute="trailing" id="n2a-k7-fkS"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <viewLayoutGuide key="safeArea" id="z5N-em-IAW"/>
+            <point key="canvasLocation" x="265.94202898550725" y="44.866071428571423"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="missingphotoicon.png" width="800" height="800"/>
+        <image name="pdf_icon.png" width="1200" height="1474"/>
+        <image name="play_icon.png" width="100" height="100"/>
+    </resources>
+</document>

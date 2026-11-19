@@ -1,0 +1,59 @@
+PODS:
+  - Alamofire (5.11.2)
+  - BSGridCollectionViewLayout (1.2.5)
+  - BSImagePicker (2.10.3):
+    - BSGridCollectionViewLayout (= 1.2.5)
+    - BSImageView (= 1.0.3)
+  - BSImageView (1.0.3)
+  - Charts (3.6.0):
+    - Charts/Core (= 3.6.0)
+  - Charts/Core (3.6.0)
+  - NMRangeSlider (1.2.1)
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+  - SDWebImagePDFCoder (1.0.1):
+    - SDWebImage (>= 5.14.1)
+  - UICollectionViewLeftAlignedLayout (1.0.2)
+  - ZXingObjC (3.6.5):
+    - ZXingObjC/All (= 3.6.5)
+  - ZXingObjC/All (3.6.5)
+
+DEPENDENCIES:
+  - Alamofire
+  - BSImagePicker
+  - Charts
+  - NMRangeSlider
+  - SDWebImage
+  - SDWebImagePDFCoder
+  - UICollectionViewLeftAlignedLayout
+  - ZXingObjC
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - BSGridCollectionViewLayout
+    - BSImagePicker
+    - BSImageView
+    - Charts
+    - NMRangeSlider
+    - SDWebImage
+    - SDWebImagePDFCoder
+    - UICollectionViewLeftAlignedLayout
+    - ZXingObjC
+
+SPEC CHECKSUMS:
+  Alamofire: 400275dd1c6d87d95a041861d2a59da4b520a203
+  BSGridCollectionViewLayout: 333dcb457a5a3bdd9212607ab5756553dcfe06cb
+  BSImagePicker: 07404254f2fcdaf5a2eb403c0f8c337267ce8738
+  BSImageView: a149459433a2687157d034c78e059d30ac7f2544
+  Charts: 888b39ae772b3dc79d0a0e659f0419ff9bd3e963
+  NMRangeSlider: 317ded652431eb90501c8421d9cddc3930d891e6
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  SDWebImagePDFCoder: ec8d162f5a4a34760bf1ea3d7f818dd85dc82e81
+  UICollectionViewLeftAlignedLayout: 830bf6fa5bab9f9b464f62e3384f9d2e00b3c0f6
+  ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
+
+PODFILE CHECKSUM: 2f84a7911f325081da84f0765ff2fee91bf0c002
+
+COCOAPODS: 1.16.2

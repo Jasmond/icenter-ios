@@ -1,0 +1,18 @@
+# User-specific Xcode workspace settings & breakpoints
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Build outputs & dependencies
+build/
+DerivedData/
+Pods/
+
+# OS system files
+.DS_Store
+**/xcuserdata/
+*.dSYM/
+*.dSYM
+build/
+*.ipa
+*.dSYM.zip

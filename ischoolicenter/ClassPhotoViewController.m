@@ -20,6 +20,17 @@
 
 #define maxphotoheight 3+(ClassPhotoTable.frame.size.width-20-6)*5/6
 
+@interface ClassPhotoViewController ()
+{
+    BOOL sideWindowAdjusting;
+    CGFloat laidOutPhotoWidth;
+    UILabel *photoHeaderLabel;
+    NSLayoutConstraint *classPhotoWidthConstraint;
+    NSLayoutConstraint *classPhotoCenterConstraint;
+    NSLayoutConstraint *classPhotoBottomConstraint;
+}
+@end
+
 @implementation ClassPhotoViewController
 @synthesize imagepicker,mypopovercontroller;
 
@@ -36,9 +47,9 @@
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
 
     
-    UILabel *headerLabel=[[UILabel alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 68)];
-    headerLabel.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
-    [self.view addSubview:headerLabel];
+    photoHeaderLabel=[[UILabel alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 68)];
+    photoHeaderLabel.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
+    [self.view addSubview:photoHeaderLabel];
     
     headertitleview=[[UIView alloc]initWithFrame:CGRectMake(70, 0, self.view.bounds.size.width-140, 68)];
     headertitlename=[[UILabel alloc]initWithFrame:CGRectMake(0, 25, headertitleview.frame.size.width, 20)];
@@ -146,8 +157,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -228,6 +242,133 @@
 }
 
 
+- (CGFloat)visibleClassPhotoWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleClassPhotoHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat visibleMaxY = MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds));
+    return MAX(MIN(visibleMaxY - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (CGRect)visibleWindowFrame
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return CGRectZero;
+    }
+    if (!self.isViewLoaded || !self.view.window) {
+        return window.bounds;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect visible = CGRectIntersection(frameInWindow, window.bounds);
+    if (CGRectIsNull(visible) || visible.size.width < 1 || visible.size.height < 1) {
+        return window.bounds;
+    }
+    return visible;
+}
+
+- (void)layoutClassPhotoForCurrentSize
+{
+    CGFloat width = [self visibleClassPhotoWidth];
+    CGFloat height = [self visibleClassPhotoHeight];
+    if (width < 1 || height < 1) {
+        return;
+    }
+    photoHeaderLabel.frame = CGRectMake(0, 0, width, 68);
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+    addclassphotobutton.frame = CGRectMake(width - 30, 31, 21, 21);
+    searchphotobutton.frame = CGRectMake(width - 70, 32, 21, 21);
+    if (searchbarview) {
+        CGRect searchFrame = searchbarview.frame;
+        searchFrame.size.width = width;
+        searchbarview.frame = searchFrame;
+        CGFloat fieldWidth = MIN(400.0, MAX(width - 180.0, 0));
+        search_text.frame = CGRectMake(MAX((width - fieldWidth) / 2.0 - 40.0, 15.0), 32, fieldWidth, 25);
+        search_favouritebutton.frame = CGRectMake(CGRectGetMaxX(search_text.frame) + 20, 32, 23, 23);
+        UIButton *cancelButton = (UIButton *)[searchbarview viewWithTag:881];
+        cancelButton.frame = CGRectMake(width - 15 - 85, 33, 85, 21);
+    }
+    if (!classPhotoWidthConstraint) {
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint.firstItem == ClassPhotoTable && constraint.firstAttribute == NSLayoutAttributeWidth && constraint.secondItem == self.view) {
+                classPhotoWidthConstraint = constraint;
+            } else if (constraint.firstItem == ClassPhotoTable && constraint.firstAttribute == NSLayoutAttributeCenterX && constraint.secondItem == self.view) {
+                classPhotoCenterConstraint = constraint;
+            } else if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeBottom && constraint.secondItem == ClassPhotoTable) {
+                classPhotoBottomConstraint = constraint;
+            }
+        }
+    }
+    CGFloat fullWidth = self.view.bounds.size.width;
+    CGFloat tableWidth = MIN(fullWidth * 0.5, width);
+    if (classPhotoWidthConstraint) {
+        classPhotoWidthConstraint.constant = tableWidth - fullWidth * 0.5;
+    }
+    if (classPhotoCenterConstraint) {
+        classPhotoCenterConstraint.constant = width / 2.0 - fullWidth / 2.0;
+    }
+    if (classPhotoBottomConstraint) {
+        classPhotoBottomConstraint.constant = MAX(self.view.bounds.size.height - height, 0);
+    }
+    if (fabs(laidOutPhotoWidth - width) > 0.5) {
+        laidOutPhotoWidth = width;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self->ClassPhotoTable reloadData];
+        });
+    }
+}
+
+- (void)pinOpenSideWindowToVisibleEdge
+{
+    if (sideWindowAdjusting || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) {
+        return;
+    }
+    CGRect visible = [self visibleWindowFrame];
+    if (visible.size.width < 1.0 || visible.size.height < 1.0) {
+        return;
+    }
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, visible.size.width);
+    sidewindowview.frame = CGRectMake(CGRectGetMaxX(visible) - panelWidth, visible.origin.y, panelWidth, visible.size.height);
+    if (sidewindowviewclosebutton && !sidewindowviewclosebutton.hidden) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) {
+            continue;
+        }
+        child.frame = sidewindowview.bounds;
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutClassPhotoForCurrentSize];
+    [self pinOpenSideWindowToVisibleEdge];
+}
+
 -(void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
@@ -254,6 +395,7 @@
     [self.view addSubview:searchbarview];
     
     UIButton *search_cancelbutton=[[UIButton alloc]initWithFrame:CGRectMake(searchbarview.frame.size.width-15-85, 33, 85, 21)];
+    search_cancelbutton.tag=881;
     [search_cancelbutton setTitle:[MyClass returntitlewithtitle:@"Cancel"] forState:UIControlStateNormal];
     search_cancelbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentRight;
     search_cancelbutton.titleLabel.font=[UIFont boldSystemFontOfSize:15];
@@ -1345,7 +1487,7 @@
 {
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
-    searchbarview.frame=CGRectMake(0, 0, self.view.bounds.size.width, 68);
+    searchbarview.frame=CGRectMake(0, 0, [self visibleClassPhotoWidth], 68);
     [UIView commitAnimations];
     [search_text becomeFirstResponder];
 }
@@ -1355,7 +1497,7 @@
     [self.view endEditing:YES];
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
-    searchbarview.frame=CGRectMake(0, -68, self.view.bounds.size.width, 68);
+    searchbarview.frame=CGRectMake(0, -68, [self visibleClassPhotoWidth], 68);
     [UIView commitAnimations];
     
     [search_favouritebutton setImage:[UIImage imageNamed:@"photofavouritebutton_white.png"] forState:UIControlStateNormal];
@@ -1614,25 +1756,49 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    CGRect visible = [self visibleWindowFrame];
+    CGFloat edge = CGRectGetMaxX(visible);
+    CGFloat panelY = visible.origin.y;
+    CGFloat panelHeight = visible.size.height;
+    if (edge < 1) {
+        edge = mainWindow.bounds.size.width;
+        panelY = 0;
+        panelHeight = mainWindow.bounds.size.height;
+    }
+    CGFloat panelWidth = width > 0 ? MIN(width, visible.size.width > 1 ? visible.size.width : edge) : 0;
+    BOOL alreadyClosed = ailoadindicator.hidden && sidewindowview.frame.size.width < 1 && fabs(sidewindowview.frame.origin.x - edge) < 1;
+    if (alreadyClosed) {
         return;
     }
-    
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (fabs(sidewindowview.frame.origin.x - (edge - panelWidth)) < 1 && fabs(sidewindowview.frame.size.width - panelWidth) < 1 && fabs(sidewindowview.frame.size.height - panelHeight) < 1) {
         return;
     }
-    
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.size.width < 1) {
         [MyClass playsoundwithoption:@"open"];
     }
-    
+    if (visible.size.width > 1) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    sideWindowAdjusting = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(edge-panelWidth, panelY, panelWidth, panelHeight);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< edge) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinOpenSideWindowToVisibleEdge];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -1659,7 +1825,7 @@
         classphotopopover.delegate=self;
         classphotopopover.classphotoobject=photoobject;
         classphotopopover.mode=mode;
-        classphotopopover.view.frame=CGRectMake(0, 0, 320, self.view.frame.size.height);
+        classphotopopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:classphotopopover.view];
         [self addChildViewController:classphotopopover];
         [classphotopopover didMoveToParentViewController:self];

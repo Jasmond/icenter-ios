@@ -16,7 +16,7 @@
 #import "MyTableViewCell.h"
 
 @interface StudentInformationViewController ()
-
+@property (nonatomic, strong) NSMutableDictionary *bottomConstants;
 @end
 
 #define studentlistwidth 240
@@ -191,10 +191,44 @@
 - (void)viewDidLayoutSubviews
 {
     [super viewDidLayoutSubviews];
+    [self layoutStudentListForCurrentSize];
     if (StudentDetailsContainerView.bounds.size.width > 1 && StudentDetailsContainerView.bounds.size.height > 1) {
         destStudentDetailsViewController.preferredContentSize = StudentDetailsContainerView.bounds.size;
     }
     [self alignStudentSearchField];
+}
+
+// The list and the Select all / Clear All / Action bar are pinned to the
+// bottom of a view that stays taller than a resized window. Move that bottom
+// up to the visible window so the buttons stay on screen.
+- (void)layoutStudentListForCurrentSize
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return;
+    }
+    CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+    CGFloat visibleBottom = MIN(MAX(bottom.y, 0), height);
+    CGFloat verticalOverflow = MAX(height - visibleBottom, 0);
+    if (!self.bottomConstants) {
+        self.bottomConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeBottom && constraint.secondAttribute == NSLayoutAttributeBottom) {
+                self.bottomConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = self.bottomConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) {
+            continue;
+        }
+        CGFloat constant = original.doubleValue + verticalOverflow;
+        if (fabs(constraint.constant - constant) > 0.5) {
+            constraint.constant = constant;
+        }
+    }
 }
 
 // The search field keeps its own placeholder and icon. A window that is not

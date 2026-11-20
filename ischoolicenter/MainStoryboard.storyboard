@@ -6868,7 +6868,7 @@
                                                 <rect key="frame" x="327.5" y="0.0" width="1" height="626"/>
                                                 <color key="backgroundColor" white="0.78170174319727892" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="width" constant="1" id="tRH-KD-aLO"/>
+                                                    <constraint firstAttribute="width" constant="0" id="tRH-KD-aLO"/>
                                                 </constraints>
                                             </view>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="TxZ-64-Jrw">
@@ -6972,7 +6972,7 @@
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YTQ-Yz-tIY">
                                                                         <rect key="frame" x="728.5" y="0.0" width="146" height="14.5"/>
                                                                         <constraints>
-                                                                            <constraint firstAttribute="width" constant="146" id="c33-Cj-FHK"/>
+                                                                            <constraint firstAttribute="width" priority="999" constant="146" id="c33-Cj-FHK"/>
                                                                         </constraints>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -6995,7 +6995,7 @@
                                                                             </label>
                                                                         </subviews>
                                                                         <constraints>
-                                                                            <constraint firstAttribute="width" constant="140.5" id="5UD-Fa-nHo"/>
+                                                                            <constraint firstAttribute="width" priority="999" constant="140.5" id="5UD-Fa-nHo"/>
                                                                         </constraints>
                                                                     </stackView>
                                                                 </subviews>
@@ -8492,7 +8492,7 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="g71-c7-lqB" secondAttribute="bottom" id="42e-gY-A1t"/>
-                                    <constraint firstItem="g71-c7-lqB" firstAttribute="top" secondItem="vIO-li-2hh" secondAttribute="top" constant="142" id="KsU-vv-uuW"/>
+                                    <constraint firstItem="g71-c7-lqB" firstAttribute="top" secondItem="vIO-li-2hh" secondAttribute="top" constant="139" id="KsU-vv-uuW"/>
                                     <constraint firstAttribute="trailing" secondItem="g71-c7-lqB" secondAttribute="trailing" constant="320" id="byW-oS-v7k"/>
                                     <constraint firstItem="g71-c7-lqB" firstAttribute="leading" secondItem="vIO-li-2hh" secondAttribute="leading" id="dSj-Us-XH1"/>
                                 </constraints>
@@ -16842,6 +16842,7 @@
                         <outlet property="searchbar" destination="qR8-mP-7oQ" id="hWD-9d-2BJ"/>
                         <outlet property="supermasterview" destination="YUf-0R-9Jh" id="THd-lc-ha9"/>
                         <outlet property="supermasterviewleadingconstraint" destination="Fra-eg-QyB" id="Vex-hP-iFo"/>
+                        <outlet property="supermasterviewwidthconstraint" destination="GiM-Pb-pIC" id="ttW-wd-001"/>
                         <outlet property="viewoptionbutton" destination="zLC-Ap-rKN" id="GU9-T7-XOi"/>
                     </connections>
                 </viewController>
@@ -42429,7 +42430,7 @@
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="awp-zf-QNP">
                                                         <rect key="frame" x="984.5" y="0.0" width="146" height="14.5"/>
                                                         <constraints>
-                                                            <constraint firstAttribute="width" constant="146" id="UjS-Vl-fTf"/>
+                                                            <constraint firstAttribute="width" priority="999" constant="146" id="UjS-Vl-fTf"/>
                                                         </constraints>
                                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -42452,7 +42453,7 @@
                                                             </label>
                                                         </subviews>
                                                         <constraints>
-                                                            <constraint firstAttribute="width" constant="140.5" id="MtO-4S-cHC"/>
+                                                            <constraint firstAttribute="width" priority="999" constant="140.5" id="MtO-4S-cHC"/>
                                                         </constraints>
                                                     </stackView>
                                                 </subviews>

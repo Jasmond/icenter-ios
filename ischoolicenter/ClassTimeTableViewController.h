@@ -246,6 +246,7 @@
     
     __weak IBOutlet UIView *supermasterview;
     __weak IBOutlet NSLayoutConstraint *supermasterviewleadingconstraint;
+    __weak IBOutlet NSLayoutConstraint *supermasterviewwidthconstraint;
     //__weak IBOutlet UIView *instructorlegendview;
     __weak IBOutlet UIButton *calendarbutton;
     __weak IBOutlet UIScrollView *legendscrollview;

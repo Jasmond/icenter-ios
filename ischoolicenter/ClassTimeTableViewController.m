@@ -24,7 +24,10 @@
 
 
 @interface ClassTimeTableViewController ()<myStudentViewController,myLeadDetailsViewController,myPopoverVCDelegate>
-
+{
+    CGFloat laidOutTimeTableWidth;
+    BOOL sideWindowAdjusting;
+}
 @end
 
 @implementation ClassTimeTableViewController
@@ -81,6 +84,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     // Do any additional setup after loading the view.
     //self.view.backgroundColor=[UIColor colorWithPatternImage:[UIImage imageNamed:@"launchimage2.png"]];
@@ -164,6 +168,12 @@
 
     
     HeaderBar.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
+    // Keep the blue bar on the visible width. The 320pt remainder is the calendar slot.
+    for (NSLayoutConstraint *constraint in supermasterview.constraints) {
+        if (constraint.firstAttribute==NSLayoutAttributeTrailing && constraint.secondItem==HeaderBar && constraint.secondAttribute==NSLayoutAttributeTrailing) {
+            constraint.constant=320;
+        }
+    }
     
     FreeScheduleTable=[[UITableView alloc]init];
     FreeScheduleTable.dataSource=self;
@@ -355,11 +365,14 @@
     sidewindowviewclosebutton.layer.opacity=0.3;
     sidewindowviewclosebutton.tag=-200;
     sidewindowviewclosebutton.hidden=YES;
+    sidewindowviewclosebutton.autoresizingMask=UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -653,15 +666,23 @@
 
 - (IBAction)openviewoption:(id)sender
 {
-    UIView *viewoptionview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, 320, self.view.bounds.size.height)];
+    CGRect visible=[self visibleWindowFrame];
+    CGFloat panelWidth=320;
+    if (visible.size.width>1) {
+        panelWidth=MIN(320, visible.size.width);
+    }
+    CGFloat contentWidth=MAX(panelWidth-30, 0);
+    UIView *viewoptionview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, panelWidth, visible.size.height>1?visible.size.height:self.view.bounds.size.height)];
     viewoptionview.backgroundColor=[UIColor systemGroupedBackgroundColor];
     
-    UIView *topbar=[[UIView alloc]initWithFrame:CGRectMake(0, 0, 320, 20)];
+    UIView *topbar=[[UIView alloc]initWithFrame:CGRectMake(0, 0, panelWidth, 64)];
+    topbar.tag=901;
+    topbar.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     topbar.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:0.3];
     [viewoptionview addSubview:topbar];
     
     //add toolbar
-    UIToolbar *toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, 20, 320, 44)];
+    UIToolbar *toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, 20, panelWidth, 44)];
     toolbar.barStyle=UIBarStyleDefault;
     toolbar.clipsToBounds=YES;
     
@@ -670,7 +691,7 @@
     [button setTitle:[MyClass returntitlewithtitle:@"Done"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(doneviewoption) forControlEvents:UIControlEventTouchUpInside];
     [button sizeToFit];
-    button.frame = CGRectMake(320-button.frame.size.width-20, 33, button.frame.size.width, 20);
+    button.frame = CGRectMake(panelWidth-button.frame.size.width-20, 33, button.frame.size.width, 20);
     [viewoptionview addSubview:button];
     
     
@@ -683,7 +704,7 @@
 //    [viewoptionview addSubview:toolbar];
 
     
-    UILabel *label=[[UILabel alloc]initWithFrame:CGRectMake(15, 60, 290, 25)];
+    UILabel *label=[[UILabel alloc]initWithFrame:CGRectMake(15, 60, contentWidth, 25)];
     label.text=[MyClass returntitlewithtitle:@"View Mode"];
     label.textColor=[UIColor darkGrayColor];
     label.font=[UIFont systemFontOfSize:14];
@@ -693,13 +714,13 @@
     scviewmode=[[UISegmentedControl alloc]initWithItems:viewmodearray];
     [scviewmode setTitle:[MyClass returntitlewithtitle:[viewmodearray objectAtIndex:0]] forSegmentAtIndex:0];
     [scviewmode setTitle:[MyClass returntitlewithtitle:[viewmodearray objectAtIndex:1]] forSegmentAtIndex:1];
-    scviewmode.frame=CGRectMake(15, 90, 290, 30);
+    scviewmode.frame=CGRectMake(15, 90, contentWidth, 30);
     scviewmode.selectedSegmentIndex=weeklyMode?1:0;
     scviewmode.tintColor=themecolor;
 //    [scviewmode addTarget:self action:@selector(changeviewmode:) forControlEvents:UIControlEventValueChanged];
     [viewoptionview addSubview:scviewmode];
   
-    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 140, 290, 25)];
+    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 140, contentWidth, 25)];
     label.text=[MyClass returntitlewithtitle:@"Zoom Mode"];
     label.textColor=[UIColor darkGrayColor];
     label.font=[UIFont systemFontOfSize:14];
@@ -710,13 +731,13 @@
     [sczoommode setTitle:[MyClass returntitlewithtitle:[zoommodearray objectAtIndex:0]] forSegmentAtIndex:0];
     [sczoommode setTitle:[MyClass returntitlewithtitle:[zoommodearray objectAtIndex:1]] forSegmentAtIndex:1];
     [sczoommode setTitle:[MyClass returntitlewithtitle:[zoommodearray objectAtIndex:2]] forSegmentAtIndex:2];
-    sczoommode.frame=CGRectMake(15, 170, 290, 30);
+    sczoommode.frame=CGRectMake(15, 170, contentWidth, 30);
     sczoommode.selectedSegmentIndex=zoommode;
     sczoommode.tintColor=themecolor;
     [viewoptionview addSubview:sczoommode];
     
     
-    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 220, 290, 25)];
+    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 220, contentWidth, 25)];
     label.text=[MyClass returntitlewithtitle:@"Column Information"];
     label.textColor=[UIColor darkGrayColor];
     label.font=[UIFont systemFontOfSize:14];
@@ -727,14 +748,14 @@
     for (int i=0; i<headertypearray.count; i++) {
         [scheadertype setTitle:[MyClass returntitlewithtitle:[headertypearray objectAtIndex:i]] forSegmentAtIndex:i];
     }
-    scheadertype.frame=CGRectMake(15, 250, 290, 30);
+    scheadertype.frame=CGRectMake(15, 250, contentWidth, 30);
     scheadertype.selectedSegmentIndex=[headertypearray indexOfObject:headertype];
     scheadertype.tintColor=themecolor;
     [scheadertype addTarget:self action:@selector(changeheadertype:) forControlEvents:UIControlEventValueChanged];
     [viewoptionview addSubview:scheadertype];
     
     
-    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 300, 290, 25)];
+    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 300, contentWidth, 25)];
     label.text=[MyClass returntitlewithtitle:@"Colored Information"];
     label.textColor=[UIColor darkGrayColor];
     label.font=[UIFont systemFontOfSize:14];
@@ -744,14 +765,14 @@
     for (int i=0; i<contentmodearray.count; i++) {
         [sccontentmode setTitle:[MyClass returntitlewithtitle:[contentmodearray objectAtIndex:i]] forSegmentAtIndex:i];
     }
-    sccontentmode.frame=CGRectMake(15, 330, 290, 30);
+    sccontentmode.frame=CGRectMake(15, 330, contentWidth, 30);
     sccontentmode.tintColor=themecolor;
     sccontentmode.selectedSegmentIndex=[contentmodearray indexOfObject:contentmode];
     [sccontentmode addTarget:self action:@selector(changecontentmode:) forControlEvents:UIControlEventValueChanged];
     [viewoptionview addSubview:sccontentmode];
     
     //outstanding mode
-    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 380, 290, 25)];
+    label=[[UILabel alloc]initWithFrame:CGRectMake(15, 380, contentWidth, 25)];
     label.text=[MyClass returntitlewithtitle:@"Outstanding Payment Mode"];
     label.textColor=[UIColor darkGrayColor];
     label.font=[UIFont systemFontOfSize:14];
@@ -761,12 +782,12 @@
     scoutstandingpaymentmode=[[UISegmentedControl alloc]initWithItems:outstandingpaymentmodearray];
     [scoutstandingpaymentmode setTitle:[MyClass returntitlewithtitle:[outstandingpaymentmodearray objectAtIndex:0]] forSegmentAtIndex:0];
     [scoutstandingpaymentmode setTitle:[MyClass returntitlewithtitle:[outstandingpaymentmodearray objectAtIndex:1]] forSegmentAtIndex:1];
-    scoutstandingpaymentmode.frame=CGRectMake(15, 410, 290, 30);
+    scoutstandingpaymentmode.frame=CGRectMake(15, 410, contentWidth, 30);
     scoutstandingpaymentmode.selectedSegmentIndex=[[MyClass getlocaldbwithparameter:@"timetableoutstandingmode"] isEqualToString:@"perstudent"]?0:1;
     scoutstandingpaymentmode.tintColor=themecolor;
     [viewoptionview addSubview:scoutstandingpaymentmode];
     
-    groupsubjectcategorylabel=[[UILabel alloc]initWithFrame:CGRectMake(15, 460, 290, 31)];
+    groupsubjectcategorylabel=[[UILabel alloc]initWithFrame:CGRectMake(15, 460, contentWidth, 31)];
     groupsubjectcategorylabel.textColor=[UIColor darkGrayColor];
     groupsubjectcategorylabel.font=[UIFont systemFontOfSize:14];
     groupsubjectcategorylabel.text=[MyClass returntitlewithtitle:@"Group subject category"];
@@ -778,7 +799,7 @@
     swgroupsubjectcategory.on=groupsubjectcategory;
     [viewoptionview addSubview:swgroupsubjectcategory];
     
-    hideemptycolumnslabel=[[UILabel alloc]initWithFrame:CGRectMake(15, 500, 290, 31)];
+    hideemptycolumnslabel=[[UILabel alloc]initWithFrame:CGRectMake(15, 500, contentWidth, 31)];
     hideemptycolumnslabel.textColor=[UIColor darkGrayColor];
     hideemptycolumnslabel.font=[UIFont systemFontOfSize:14];
     hideemptycolumnslabel.text=[MyClass returntitlewithtitle:@"Hide empty columns"];
@@ -790,7 +811,7 @@
     swhideemptycolumns.on=[filtermode isEqualToString:@"On"];
     [viewoptionview addSubview:swhideemptycolumns];
     
-    showallstudentcountlabel=[[UILabel alloc]initWithFrame:CGRectMake(15, swhideemptycolumns.frame.origin.y+40, 290, 31)];
+    showallstudentcountlabel=[[UILabel alloc]initWithFrame:CGRectMake(15, swhideemptycolumns.frame.origin.y+40, contentWidth, 31)];
     showallstudentcountlabel.textColor=[UIColor darkGrayColor];
     showallstudentcountlabel.font=[UIFont systemFontOfSize:14];
     showallstudentcountlabel.text=[MyClass returntitlewithtitle:@"Show All Student Count"];
@@ -802,7 +823,7 @@
     swshowallstudentcount.on=[[MyClass getlocaldbwithparameter:@"timetableshowallstudentcount"] isEqualToString:@"Y"];
     [viewoptionview addSubview:swshowallstudentcount];
     
-    showattendingcountlabel=[[UILabel alloc]initWithFrame:CGRectMake(15, swshowallstudentcount.frame.origin.y+40, 290, 31)];
+    showattendingcountlabel=[[UILabel alloc]initWithFrame:CGRectMake(15, swshowallstudentcount.frame.origin.y+40, contentWidth, 31)];
     showattendingcountlabel.textColor=[UIColor darkGrayColor];
     showattendingcountlabel.font=[UIFont systemFontOfSize:14];
     showattendingcountlabel.text=[MyClass returntitlewithtitle:@"Show Attending Student Count"];
@@ -848,18 +869,20 @@
     [self refreshswitch3rddimension];
     
     
-    UIView *bottomview=[[UIView alloc]initWithFrame:CGRectMake(0, 660+20+44, 320, self.view.bounds.size.height-20-44-660)];
+    UIView *bottomview=[[UIView alloc]initWithFrame:CGRectMake(0, 724, panelWidth, MAX(viewoptionview.frame.size.height-724, 0))];
+    bottomview.tag=902;
+    bottomview.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     bottomview.backgroundColor=[UIColor whiteColor];
     [viewoptionview addSubview:bottomview];
     
     UIViewController *viewcontroller=[[UIViewController alloc]initWithNibName:nil bundle:nil];
     viewcontroller.view=viewoptionview;
-    viewcontroller.preferredContentSize=CGSizeMake(320, self.view.bounds.size.height);
+    viewcontroller.preferredContentSize=CGSizeMake(panelWidth, viewoptionview.frame.size.height);
+    viewoptionview.clipsToBounds=YES;
 
-    [self startsidewindowanimationwithwidth:320];
+    [self startsidewindowanimationwithwidth:panelWidth];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        viewcontroller.view.frame=self->mainWindow.bounds;
+        viewcontroller.view.frame=CGRectMake(0, 0, panelWidth, self->sidewindowview.bounds.size.height>1?self->sidewindowview.bounds.size.height:viewoptionview.frame.size.height);
         [self->sidewindowview addSubview:viewcontroller.view];
         [self addChildViewController:viewcontroller];
         [viewcontroller didMoveToParentViewController:self];
@@ -2262,14 +2285,14 @@
 -(void) drawDetailClassMasterViewWithVerticalPosition:(CGFloat)verticalposition
 {
     int masterViewHeight=60+(int)ClassScheduleRecordArray.count*25+41;
-    masterView.frame=CGRectMake(detailViewMode?0:-[self returnclasstimewidth], verticalposition, self.view.bounds.size.width, masterViewHeight+1);
-    ClassDetailTable.frame=CGRectMake(0, 60, self.view.bounds.size.width, ClassScheduleRecordArray.count*25+41);
+    masterView.frame=CGRectMake(detailViewMode?0:-[self returnclasstimewidth], verticalposition, [self visibleTimeTableWidth], masterViewHeight+1);
+    ClassDetailTable.frame=CGRectMake(0, 60, [self visibleTimeTableWidth], ClassScheduleRecordArray.count*25+41);
     [ClassDetailTable reloadData];
     
     [classtablebutton removeFromSuperview];
     
     if ([TimeTableMode isEqualToString:@"PopoverWeekly"] || [TimeTableMode isEqualToString:@"PopoverConsolidated"]) {
-        classtablebutton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-190, 10, 150, 30)];
+        classtablebutton=[[UIButton alloc]initWithFrame:CGRectMake([self visibleTimeTableWidth]-190, 10, 150, 30)];
         [classtablebutton setTitle:[MyClass returntitlewithtitle:@"Select date"] forState:UIControlStateNormal];
         [classtablebutton addTarget:self action:@selector(selectdatebuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
         [classtablebutton.titleLabel setFont:[UIFont systemFontOfSize:15]];
@@ -2278,7 +2301,7 @@
         classtablebutton.tag=selectedbutton.tag;
         
     }else if ([TimeTableMode isEqualToString:@"Weekly" ]){
-        classtablebutton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-170, 10, 150, 30)];
+        classtablebutton=[[UIButton alloc]initWithFrame:CGRectMake([self visibleTimeTableWidth]-170, 10, 150, 30)];
         [classtablebutton setTitle:[MyClass returntitlewithtitle:@"To Class Schedule"] forState:UIControlStateNormal];
         [classtablebutton addTarget:self action:@selector(gotoclassschedule:) forControlEvents:UIControlEventTouchUpInside];
         classtablebutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentRight;
@@ -2301,13 +2324,13 @@
     masterView=[[UIView alloc]init];
     masterView.backgroundColor=tablecolor;
     
-    UIView *decorbar=[[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 3)];
+    UIView *decorbar=[[UIView alloc]initWithFrame:CGRectMake(0, 0, [self visibleTimeTableWidth], 3)];
     decorbar.backgroundColor=[UIColor colorWithRed:65/255.0 green:65/255.0 blue:65/255.0 alpha:1.0];
     [masterView addSubview:decorbar];
     
     
     //add header
-    headerview=[[UIView alloc]initWithFrame:CGRectMake(0, 40, self.view.bounds.size.width, 20)];
+    headerview=[[UIView alloc]initWithFrame:CGRectMake(0, 40, [self visibleTimeTableWidth], 20)];
     headerview.backgroundColor=tablecolor;
     
     
@@ -2985,7 +3008,7 @@
             [self startsidewindowanimationwithwidth:self.view.frame.size.width*0.68];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 
-                viewcontroller.view.frame=CGRectMake(0, 0, mainWindow.bounds.size.width*0.68, mainWindow.bounds.size.height);//self->mainWindow.bounds;
+                viewcontroller.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:viewcontroller.view];
                 [self addChildViewController:viewcontroller];
                 [viewcontroller didMoveToParentViewController:self];
@@ -4404,7 +4427,7 @@
 -(void) loaddatebar
 {
     CGFloat xpos=[self returnclasstimewidth];
-    datebartable.frame=CGRectMake(xpos, superviewclearence, self.view.bounds.size.width-xpos,66);
+    datebartable.frame=CGRectMake(xpos, superviewclearence, [self visibleTimeTableWidth]-xpos,66);
     [datebartable reloadData];
     
     
@@ -4421,12 +4444,12 @@
                 return classtimewidth;
             }else{
 //                NSLog(@"timewidth-%f",self.view.bounds.size.width);
-                return self.view.bounds.size.width-sum*(timetablewidth/sum);//  [(int)(timetablewidth/sum)*sum floatValue];
+                return [self visibleTimeTableWidth]-sum*(timetablewidth/sum);//  [(int)(timetablewidth/sum)*sum floatValue];
             }
         }
     }else{
-        if (self.view.bounds.size.width>cellwidth*totalSubjectColumn+classtimewidth) {
-            return self.view.bounds.size.width-cellwidth*totalSubjectColumn;
+        if ([self visibleTimeTableWidth]>cellwidth*totalSubjectColumn+classtimewidth) {
+            return [self visibleTimeTableWidth]-cellwidth*totalSubjectColumn;
         }else{
             return classtimewidth;
         }
@@ -6730,7 +6753,7 @@
         [self startsidewindowanimationwithwidth:480];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             
-            viewcontroller.view.frame=CGRectMake(0, 0, 480, mainWindow.bounds.size.height);//self->mainWindow.bounds;
+            viewcontroller.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:viewcontroller.view];
             [self addChildViewController:viewcontroller];
             [viewcontroller didMoveToParentViewController:self];
@@ -7440,7 +7463,7 @@
                         }
 
                         if (systemmessagelabel.frame.size.width==0) {
-                            systemmessagelabel.frame=CGRectMake(tablex+timetableoffset, tabley+66, self.view.bounds.size.width-timetableoffset, NoOfTimeSlot*cellheight);
+                            systemmessagelabel.frame=CGRectMake(tablex+timetableoffset, tabley+66, [self visibleTimeTableWidth]-timetableoffset, NoOfTimeSlot*cellheight);
                         }
                     });
                     
@@ -7476,16 +7499,17 @@
         cellheight= height;
         
         long totalcellwidthcount=[[headerWidthArray lastObject] integerValue]+[[headerPositionArray lastObject] integerValue];
+        CGFloat timetableSpan=[self visibleTimeTableWidth]-[self returnclasstimewidth];
         if(zoommode==0){
-            width=(self.view.frame.size.width-[self returnclasstimewidth])/(float)totalcellwidthcount;
+            width=timetableSpan/(float)totalcellwidthcount;
         }else if (zoommode==1){
             width = 50.0;
         }else{
             width = 150;
         }
 
-        if(width<(self.view.frame.size.width-[self returnclasstimewidth])/(float)totalcellwidthcount){
-            width=(self.view.frame.size.width-[self returnclasstimewidth])/(float)totalcellwidthcount;
+        if(width<timetableSpan/(float)totalcellwidthcount){
+            width=timetableSpan/(float)totalcellwidthcount;
         }
 //        NSLog(@"%f %f %f",self.view.frame.size.width,([[headerWidthArray lastObject] floatValue]+[[headerPositionArray lastObject] floatValue]),964.0/28.0);
 //        width=964.0/28.0;
@@ -7532,27 +7556,202 @@
     return width<minicellwidthforcountview?minicellwidthforcountview:width;
 }
 
+- (CGFloat)visibleTimeTableWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (void)layoutClassTimeTableForCurrentSize
+{
+    CGFloat width = [self visibleTimeTableWidth];
+    CGFloat height = self.view.bounds.size.height;
+    if (width < 1 || height < 1 || !supermasterview) {
+        return;
+    }
+    CGFloat overflow = MAX(0, self.view.bounds.size.width - width);
+    if (supermasterviewwidthconstraint && fabs(supermasterviewwidthconstraint.constant - (320 - overflow)) > 0.5) {
+        supermasterviewwidthconstraint.constant = 320 - overflow;
+    }
+    if (!headertitleview || !superview || !timetablecollectionview || !ShareButton) {
+        return;
+    }
+    if (fabs(laidOutTimeTableWidth - width) < 0.5) {
+        return;
+    }
+    laidOutTimeTableWidth = width;
+    timetablewidth = width - classtimewidth;
+    legendviewwidth = width - 608 - 20;
+    totalcellheight = height - tabley - 66;
+    
+    headertitleview.frame = CGRectMake(70, 0, MAX(width - 140, 0), 68);
+    headertitlename.frame = CGRectMake(0, 25, headertitleview.frame.size.width, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, headertitleview.frame.size.width, 68);
+    [self updateheadercentertitle];
+    ShareButton.frame = CGRectMake(width - 45, 34, 30, 30);
+    CancelButton.frame = CGRectMake(width - 90, 36, 74, 30);
+    superview.frame = CGRectMake(0, tabley - superviewclearence, width, height - tabley + superviewclearence);
+    masterScrollView.frame = CGRectMake(tablex, superviewclearence + 66, width, superview.frame.size.height - superviewclearence - 66);
+    timetablecollectionview.frame = CGRectMake(0, superviewclearence + 66, width, superview.frame.size.height - superviewclearence - 66);
+    datebartablebackground.frame = CGRectMake(0, superviewclearence + 1, width, 65);
+    supermasterviewbutton.frame = CGRectMake(0, 0, width, height);
+    if (calendarview) {
+        calendarview.frame = CGRectMake(width, 0, 320, height);
+    }
+    
+    if (classTime.count == 0 || classDay.count == 0) {
+        return;
+    }
+    if (detailViewMode && headerWidthArray.count > 0) {
+        [self returncellheight];
+        [self drawTimeTableWithTimeTableMode:TimeTableMode SelectedLesson:nil];
+    } else if (filteredHeaderArray.count > 0) {
+        cellwidth = [self returncellwidth:timetablewidth / classDay.count / filteredHeaderArray.count];
+        [self drawTimeCellWithViewOption:TimeTableMode updatecellposition:@"All" expandcellposition:@"" classschedulerecordarray:nil];
+    }
+    [self loaddatebar];
+}
+
+- (void)pinOpenSideWindowToVisibleEdge
+{
+    if (sideWindowAdjusting || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) {
+        return;
+    }
+    CGRect visible = [self visibleWindowFrame];
+    if (visible.size.width < 1.0 || visible.size.height < 1.0) {
+        return;
+    }
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, visible.size.width);
+    CGRect target = CGRectMake(CGRectGetMaxX(visible) - panelWidth, visible.origin.y, panelWidth, visible.size.height);
+    BOOL sameFrame = fabs(sidewindowview.frame.origin.x - target.origin.x) < 0.5 && fabs(sidewindowview.frame.origin.y - target.origin.y) < 0.5 && fabs(sidewindowview.frame.size.width - target.size.width) < 0.5 && fabs(sidewindowview.frame.size.height - target.size.height) < 0.5;
+    if (!sameFrame) {
+        sidewindowview.frame = target;
+    }
+    if (sidewindowviewclosebutton && !sidewindowviewclosebutton.hidden) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    [self layoutSideWindowContent];
+}
+
+- (void)layoutSideWindowContent
+{
+    CGFloat panelWidth = sidewindowview.bounds.size.width;
+    CGFloat panelHeight = sidewindowview.bounds.size.height;
+    CGFloat contentWidth = MAX(panelWidth - 30.0, 0);
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) {
+            continue;
+        }
+        child.frame = sidewindowview.bounds;
+        child.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        for (UIView *subview in child.subviews) {
+            if ([subview isKindOfClass:[UISwitch class]]) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+                subview.frame = CGRectMake(panelWidth - 71.0, subview.frame.origin.y, 51.0, 31.0);
+            } else if ([subview isKindOfClass:[UISegmentedControl class]]) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+                subview.frame = CGRectMake(15.0, subview.frame.origin.y, contentWidth, subview.frame.size.height);
+            } else if ([subview isKindOfClass:[UIButton class]]) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+                CGRect frame = subview.frame;
+                frame.origin.x = panelWidth - frame.size.width - 20.0;
+                subview.frame = frame;
+            } else if (subview.tag == 901) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+                subview.frame = CGRectMake(0, 0, panelWidth, 64);
+            } else if (subview.tag == 902) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+                subview.frame = CGRectMake(0, 724, panelWidth, MAX(panelHeight - 724, 0));
+            } else if (subview.frame.size.width > 240.0) {
+                subview.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+                CGRect frame = subview.frame;
+                frame.origin.x = 15.0;
+                frame.size.width = contentWidth;
+                subview.frame = frame;
+            }
+        }
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutClassTimeTableForCurrentSize];
+    [self pinOpenSideWindowToVisibleEdge];
+}
+
+-(CGRect) visibleWindowFrame
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return CGRectZero;
+    }
+    if (!self.isViewLoaded || !self.view.window) {
+        return window.bounds;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect visible = CGRectIntersection(frameInWindow, window.bounds);
+    if (CGRectIsNull(visible) || visible.size.width < 1 || visible.size.height < 1) {
+        return window.bounds;
+    }
+    return visible;
+}
+
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    CGRect visible = [self visibleWindowFrame];
+    CGFloat edge = CGRectGetMaxX(visible);
+    CGFloat panelY = visible.origin.y;
+    CGFloat panelHeight = visible.size.height;
+    if (edge < 1) {
+        edge = mainWindow.bounds.size.width;
+        panelY = 0;
+        panelHeight = mainWindow.bounds.size.height;
+    }
+    CGFloat panelWidth = width > 0 ? MIN(width, visible.size.width > 1 ? visible.size.width : edge) : 0;
+    BOOL alreadyClosed = ailoadindicator.hidden && sidewindowview.frame.size.width < 1 && fabs(sidewindowview.frame.origin.x - edge) < 1;
+    if (alreadyClosed) {
+        return;
+    }
+    if (fabs(sidewindowview.frame.origin.x - (edge - panelWidth)) < 1 && fabs(sidewindowview.frame.size.width - panelWidth) < 1) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
-        return;
-    }
-    
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.size.width < 1) {
         [MyClass playsoundwithoption:@"open"];
     }
+    if (visible.size.width > 1) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    sideWindowAdjusting = YES;
     
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(edge-panelWidth, panelY, panelWidth, panelHeight);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinOpenSideWindowToVisibleEdge];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -8358,7 +8557,7 @@
             enrollmentpopover.currentsubject=classschedulerecord.subject;
 
             [self->sidewindowview.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-            enrollmentpopover.view.frame=self->mainWindow.bounds;
+            enrollmentpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:enrollmentpopover.view];
             [self addChildViewController:enrollmentpopover];
             [enrollmentpopover didMoveToParentViewController:self];
@@ -8481,9 +8680,7 @@
         pickerviewcontroller.preferredContentSize=CGSizeMake(320, 40*allstudentarray.count);
         pickerviewcontroller.itemsarray=allstudentarray;
         
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
+        pickerviewcontroller.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];

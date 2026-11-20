@@ -257,6 +257,12 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
@@ -271,7 +277,14 @@
     sidewindowview.hidden = width<=0;
     
     [UIView animateWithDuration:0.25f animations:^{
-        self->sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        self->sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }

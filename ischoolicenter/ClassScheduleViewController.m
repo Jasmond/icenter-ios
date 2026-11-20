@@ -28,6 +28,9 @@
 @property (nonatomic, assign) BOOL sideWindowOpen;
 @property (nonatomic, assign) BOOL sideWindowAnimating;
 @property (nonatomic, assign) CGFloat laidOutScheduleWidth;
+@property (nonatomic, strong) NSLayoutConstraint *classListEdgeConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *retainedClassListLeadingConstraint;
+@property (nonatomic, strong) NSMutableDictionary *scheduleBottomConstants;
 @end
 
 #define confirmationwidth 110
@@ -118,7 +121,7 @@
 
     
     //masterView=[[UIView alloc]initWithFrame:CGRectMake(0, 142, self.view.frame.size.width, self.view.frame.size.height-142)];
-    masterView.backgroundColor=[UIColor lightGrayColor];
+    masterView.backgroundColor=[UIColor systemGroupedBackgroundColor];
     //classheaderview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 38)];
     //lessonheaderview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 38)];
     
@@ -1126,13 +1129,49 @@
     [self updateEditAttendanceMenu];
 }
 
+- (void)pinClassListForCurrentMode
+{
+    if (!self.retainedClassListLeadingConstraint) {
+        self.retainedClassListLeadingConstraint = classViewLeadingConstraint;
+    }
+    NSLayoutConstraint *leading = self.retainedClassListLeadingConstraint;
+    if (!leading || !LessonTable) {
+        return;
+    }
+    UIView *firstView = (UIView *)leading.firstItem;
+    UIView *secondView = (UIView *)leading.secondItem;
+    UIView *classList = firstView;
+    if ([secondView isKindOfClass:[UIView class]] && classList == secondView.superview) {
+        classList = secondView;
+    }
+    if (![classList isKindOfClass:[UIView class]]) {
+        return;
+    }
+    BOOL classMode = ![viewmode isEqualToString:@"lesson"];
+    lessonheaderview.hidden = classMode;
+    LessonTable.hidden = classMode;
+    if (classMode) {
+        self.classListEdgeConstraint.active = NO;
+        leading.constant = 0;
+        leading.active = YES;
+        return;
+    }
+    if (!self.classListEdgeConstraint) {
+        self.classListEdgeConstraint = [NSLayoutConstraint constraintWithItem:classList
+                                                                     attribute:NSLayoutAttributeLeading
+                                                                     relatedBy:NSLayoutRelationEqual
+                                                                     toItem:LessonTable
+                                                                     attribute:NSLayoutAttributeTrailing
+                                                                     multiplier:1
+                                                                     constant:0];
+    }
+    leading.active = NO;
+    self.classListEdgeConstraint.active = YES;
+}
+
 -(void) showTable
 {
-    if ([viewmode isEqualToString:@"class"]) {
-        classViewLeadingConstraint.constant=0;
-    }else{
-        classViewLeadingConstraint.constant=self.view.frame.size.width*0.32+1;
-    }
+    [self pinClassListForCurrentMode];
 }
 
 -(void) returnfilterdailyclassschedulearray
@@ -7421,8 +7460,11 @@
         return width;
     }
     CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
-    CGFloat visibleMaxX = MIN(CGRectGetMaxX(frameInWindow), CGRectGetMaxX(window.bounds));
-    return MAX(MIN(visibleMaxX - CGRectGetMinX(frameInWindow), width), 0);
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    // The side menu slides this view to the right. Match that shift on the right by clipping, and do not reflow.
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
 }
 
 - (void)layoutDateBarForWidth:(CGFloat)width
@@ -7445,10 +7487,48 @@
     return (calendarOpen ? 0 : -320) + overflow;
 }
 
+- (CGFloat)visibleScheduleHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+    return MIN(MAX(bottom.y, 0), height);
+}
+
+- (void)pinScheduleBottom
+{
+    CGFloat height = self.view.bounds.size.height;
+    if (height < 1) {
+        return;
+    }
+    CGFloat verticalOverflow = MAX(height - [self visibleScheduleHeight], 0);
+    if (!self.scheduleBottomConstants) {
+        self.scheduleBottomConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeBottom && constraint.secondAttribute == NSLayoutAttributeBottom) {
+                self.scheduleBottomConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = self.scheduleBottomConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) {
+            continue;
+        }
+        CGFloat constant = original.doubleValue + verticalOverflow;
+        if (fabs(constraint.constant - constant) > 0.5) {
+            constraint.constant = constant;
+        }
+    }
+}
+
 - (void)layoutClassScheduleForCurrentSize
 {
     CGFloat width = [self visibleScheduleWidth];
-    CGFloat height = self.view.bounds.size.height;
+    CGFloat height = [self visibleScheduleHeight];
     if (width < 1 || height < 1 || !headerLabel || !supermasterview) {
         return;
     }
@@ -7456,7 +7536,9 @@
     if (masterviewtrailingconstraint && fabs(masterviewtrailingconstraint.constant - trailing) > 0.5) {
         masterviewtrailingconstraint.constant = trailing;
     }
-    if (fabs(self.laidOutScheduleWidth - width) < 0.5 && fabs(headerLabel.frame.size.width - width) < 0.5) {
+    [self pinScheduleBottom];
+    [self pinClassListForCurrentMode];
+    if (fabs(self.laidOutScheduleWidth - width) < 0.5 && fabs(headerLabel.frame.size.width - width) < 0.5 && fabs(calendarview.frame.size.height - height) < 0.5) {
         [self layoutSideWindowForCurrentSize];
         return;
     }
@@ -7605,7 +7687,9 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (!mainWindow) {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    } else if (!mainWindow) {
         mainWindow = [self scheduleSceneWindow];
     }
     if (!mainWindow) {

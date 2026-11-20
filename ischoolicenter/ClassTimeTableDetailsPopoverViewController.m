@@ -53,8 +53,10 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -1019,7 +1021,7 @@
                             return;
                         }
                         
-                        dtpopover.view.frame=mainWindow.bounds;
+                        dtpopover.view.frame=sidewindowview.bounds;
                         [sidewindowview addSubview:dtpopover.view];
                         [self addChildViewController:dtpopover];
                         [dtpopover didMoveToParentViewController:self];
@@ -1037,7 +1039,7 @@
                         remarksuppopover.classScheduleObject=ClassScheduleObject;
                         remarksuppopover.preferredContentSize=CGSizeMake(480, self.view.frame.size.height);
                         
-                        remarksuppopover.view.frame=mainWindow.bounds;
+                        remarksuppopover.view.frame=sidewindowview.bounds;
                         [sidewindowview addSubview:remarksuppopover.view];
                         [self addChildViewController:remarksuppopover];
                         [remarksuppopover didMoveToParentViewController:self];
@@ -1081,7 +1083,7 @@
         remarksuppopover.preferredContentSize=CGSizeMake(480, self.view.frame.size.height);
 
         
-        remarksuppopover.view.frame=mainWindow.bounds;
+        remarksuppopover.view.frame=sidewindowview.bounds;
         [sidewindowview addSubview:remarksuppopover.view];
         [self addChildViewController:remarksuppopover];
         [remarksuppopover didMoveToParentViewController:self];
@@ -1127,7 +1129,7 @@
             return;
         }
         
-        messagepopover.view.frame=self->mainWindow.bounds;
+        messagepopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:messagepopover.view];
         [self addChildViewController:messagepopover];
         [messagepopover didMoveToParentViewController:self];
@@ -1561,9 +1563,7 @@
         pickerviewcontroller.preferredContentSize=CGSizeMake(320, 40*allstudentarray.count);
         pickerviewcontroller.itemsarray=allstudentarray;
         
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
+        pickerviewcontroller.view.frame=sidewindowview.bounds;
         [self->sidewindowview addSubview:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];
@@ -1587,7 +1587,7 @@
         makeuppopover.PopoverLessonAndClassRecord=obj;
         makeuppopover.PopoverOption=@"DailyScheduleLesson";
         
-        makeuppopover.view.frame=mainWindow.bounds;
+        makeuppopover.view.frame=sidewindowview.bounds;
         [sidewindowview addSubview:makeuppopover.view];
         [self addChildViewController:makeuppopover];
         [makeuppopover didMoveToParentViewController:self];
@@ -2184,7 +2184,7 @@
             //classpopover.PopoverStudent=DetailsViewStudent;
             makeuppopover.preferredContentSize=CGSizeMake(320, self.view.frame.size.height);
             
-            makeuppopover.view.frame=mainWindow.bounds;
+            makeuppopover.view.frame=sidewindowview.bounds;
             [sidewindowview addSubview:makeuppopover.view];
             [self addChildViewController:makeuppopover];
             [makeuppopover didMoveToParentViewController:self];
@@ -2212,6 +2212,12 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
@@ -2225,12 +2231,20 @@
     }
     
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];

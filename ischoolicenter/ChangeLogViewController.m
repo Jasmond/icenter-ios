@@ -13,7 +13,9 @@
 #import "MainViewController.h"
 
 @interface ChangeLogViewController ()
-
+{
+    NSMutableDictionary *edgeConstants;
+}
 @end
 
 #define themecolor [UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0]
@@ -26,6 +28,7 @@
     // Do any additional setup after loading the view.
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
 //    UILabel *headerLabel=[[UILabel alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 68)];
 //    headerLabel.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
@@ -599,6 +602,83 @@
 
 - (IBAction)typeButtonPressed:(UIButton *)sender {
     [MyClass showPickerViewControllerWithSelectedItems:[[NSMutableArray alloc]initWithObjects:typeSelected, nil]  DataType:@"CLType" DataIndex:0 ShowSearchBar:NO BottomMode:nil PreferredContentSize:CGSizeMake(200, typeArray.count*44) View:self Button:sender ItemsArray:typeArray Title:nil];
+}
+
+- (CGFloat)visibleLogWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) return width;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleLogHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) return height;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    return MAX(MIN(MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds)) - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (void)layoutChangeLogForCurrentSize
+{
+    CGFloat width = [self visibleLogWidth];
+    CGFloat height = [self visibleLogHeight];
+    if (width < 1 || height < 1) return;
+    if (!edgeConstants) {
+        edgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint == masterviewtrailingconstrain) continue;
+            BOOL horizontal = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeTrailing || constraint.firstAttribute == NSLayoutAttributeTrailingMargin) && constraint.secondAttribute == NSLayoutAttributeTrailing;
+            BOOL vertical = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin) && constraint.secondAttribute == NSLayoutAttributeBottom;
+            if (horizontal || vertical) {
+                edgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat visibleRight = width;
+    CGFloat visibleBottom = height;
+    if (self.view.window) {
+        CGPoint right = [self.view convertPoint:CGPointMake(CGRectGetMaxX(self.view.window.bounds), 0) fromView:nil];
+        CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(self.view.window.bounds)) fromView:nil];
+        CGPoint origin = [self.view convertPoint:CGPointZero toView:nil];
+        CGFloat leftShift = MAX(origin.x - CGRectGetMinX(self.view.window.bounds), 0);
+        visibleRight = MIN(MAX(right.x + leftShift, 0), self.view.bounds.size.width);
+        visibleBottom = MIN(MAX(bottom.y, 0), self.view.bounds.size.height);
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - visibleRight, 0);
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - visibleBottom, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = edgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) continue;
+        BOOL vertical = constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin;
+        CGFloat target = original.doubleValue + (vertical ? verticalOverflow : overflow);
+        if (fabs(constraint.constant - target) > 0.5) constraint.constant = target;
+    }
+    BOOL calendarOpen = masterviewleadingconstraint.constant < -1;
+    CGFloat trailing = (calendarOpen ? 0 : -320) + overflow;
+    if (masterviewtrailingconstrain && fabs(masterviewtrailingconstrain.constant - trailing) > 0.5) {
+        masterviewtrailingconstrain.constant = trailing;
+    }
+    if (calendarview) {
+        calendarview.frame = CGRectMake(visibleRight, 0, 320, MAX(visibleBottom, 1));
+    }
+    CGFloat titleWidth = MAX(visibleRight - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutChangeLogForCurrentSize];
 }
 
 -(void) closecalendar

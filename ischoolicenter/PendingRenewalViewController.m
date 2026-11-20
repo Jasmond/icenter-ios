@@ -16,7 +16,8 @@
 #import "SceneDelegate.h"
 
 @interface PendingRenewalViewController ()
-
+@property (nonatomic, strong) NSMutableDictionary *renewalEdgeConstants;
+@property (nonatomic, assign) BOOL sideWindowAdjusting;
 @end
 
 @implementation PendingRenewalViewController
@@ -179,8 +180,10 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -1455,7 +1458,7 @@
                 enrollmentpopover.PopoverStudent=DetailsViewStudent;
                 enrollmentpopover.EnrollmentTableMode=@"RenewalDrop";
                 
-                enrollmentpopover.view.frame=self->mainWindow.bounds;
+                enrollmentpopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:enrollmentpopover.view];
                 [self addChildViewController:enrollmentpopover];
                 [enrollmentpopover didMoveToParentViewController:self];
@@ -1522,7 +1525,7 @@
                     enrollmentpopover.PopoverStudent=DetailsViewStudent;
                     enrollmentpopover.EnrollmentTableMode=@"RenewalDrop";
                     
-                    enrollmentpopover.view.frame=self->mainWindow.bounds;
+                    enrollmentpopover.view.frame=self->sidewindowview.bounds;
                     [self->sidewindowview addSubview:enrollmentpopover.view];
                     [self addChildViewController:enrollmentpopover];
                     [enrollmentpopover didMoveToParentViewController:self];
@@ -2367,25 +2370,43 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    mainWindow = window;
+    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==window.bounds.size.width) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (window.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - window.bounds.size.height) < 0.5) {
         return;
     }
     
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.origin.x== window.bounds.size.width) {
         [MyClass playsoundwithoption:@"open"];
     }
     
+    self.sideWindowAdjusting = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(window.bounds.size.width-width, 0, width, window.bounds.size.height);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< window.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        self.sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinRenewalSideWindow];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -2651,6 +2672,115 @@
 {
     [self returnfilterrenewallogarray];
     [LogDetailsTable reloadData];
+}
+
+- (CGFloat)visibleRenewalWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleRenewalHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+    return MIN(MAX(bottom.y, 0), height);
+}
+
+- (void)pinRenewalSideWindow
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (self.sideWindowAdjusting || !window || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) {
+        return;
+    }
+    mainWindow = window;
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, window.bounds.size.width);
+    sidewindowview.frame = CGRectMake(window.bounds.size.width - panelWidth, 0, panelWidth, window.bounds.size.height);
+    if (sidewindowviewclosebutton) {
+        if (sidewindowviewclosebutton.superview != window) {
+            [window addSubview:sidewindowviewclosebutton];
+        }
+        sidewindowviewclosebutton.frame = window.bounds;
+    }
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) {
+            continue;
+        }
+        child.frame = sidewindowview.bounds;
+    }
+}
+
+- (void)layoutPendingRenewalForCurrentSize
+{
+    CGFloat width = [self visibleRenewalWidth];
+    CGFloat height = [self visibleRenewalHeight];
+    if (width < 1 || height < 1 || !supermasterview) {
+        return;
+    }
+    if (!self.renewalEdgeConstants) {
+        self.renewalEdgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeBottom && constraint.secondAttribute == NSLayoutAttributeBottom) {
+                self.renewalEdgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - height, 0);
+    BOOL calendarOpen = supermasterviewleadingconstraint.constant < -1;
+    CGFloat trailing = (calendarOpen ? 0 : -320) + overflow;
+    if (supermasterviewtrailingconstraint && fabs(supermasterviewtrailingconstraint.constant - trailing) > 0.5) {
+        supermasterviewtrailingconstraint.constant = trailing;
+    }
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = self.renewalEdgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) {
+            continue;
+        }
+        CGFloat constant = original.doubleValue + verticalOverflow;
+        if (fabs(constraint.constant - constant) > 0.5) {
+            constraint.constant = constant;
+        }
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+    reloadbutton.frame = CGRectMake(width - 45, 34, 28, 28);
+    if (firstloadcover && !firstloadcover.hidden) {
+        firstloadcover.frame = CGRectMake(0, 68, width, MAX(height - 68, 0));
+    }
+    if (supermasterviewbutton) {
+        supermasterviewbutton.frame = CGRectMake(0, 0, width, height);
+    }
+    CGFloat calendarX = supermasterview.bounds.size.width - 320;
+    if (calendarX < width) {
+        calendarX = width;
+    }
+    calendarview.frame = CGRectMake(calendarX, 0, 320, height);
+    [self pinRenewalSideWindow];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutPendingRenewalForCurrentSize];
 }
 
 -(void) closecalendar

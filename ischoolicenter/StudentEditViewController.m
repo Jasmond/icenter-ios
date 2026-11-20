@@ -57,9 +57,10 @@
     
     // Do any additional setup after loading the view.
     
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
-    selfViewWidth = screenSize.width-240;
+    selfViewWidth = self.view.bounds.size.width - 240;
+    if (selfViewWidth < 1) {
+        selfViewWidth = self.view.bounds.size.width;
+    }
     
     maxcontactperline=(selfViewWidth-178-140-20)/contactcellwidth;
     
@@ -490,8 +491,21 @@
         return width;
     }
     CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
-    CGFloat visibleMaxX = MIN(CGRectGetMaxX(frameInWindow), CGRectGetMaxX(window.bounds));
-    return MAX(MIN(visibleMaxX - CGRectGetMinX(frameInWindow), width), 0);
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleEditHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+    return MIN(MAX(bottom.y, 0), height);
 }
 
 - (void)viewDidLayoutSubviews
@@ -524,7 +538,7 @@
 - (void)layoutStudentEditForCurrentSize
 {
     CGFloat width = [self visibleEditWidth];
-    CGFloat height = self.view.bounds.size.height;
+    CGFloat height = [self visibleEditHeight];
     if (width < 1 || height < 1 || !studentTable || !sideselectionview) {
         return;
     }
@@ -568,7 +582,7 @@
 -(void) adjusttablesize
 {
     //if ([globalvariables.leftmenuindex isEqualToString:@"1"]) {
-        studentTable.frame=CGRectMake(178, 70, MAX([self visibleEditWidth] - 178, 0), MAX(self.view.bounds.size.height - keyboardheight - 70, 0));
+        studentTable.frame=CGRectMake(178, 70, MAX([self visibleEditWidth] - 178, 0), MAX([self visibleEditHeight] - keyboardheight - 70, 0));
     /*}else{
         studentTable.frame=CGRectMake(178, 64, studentTable.frame.size.width, 728-keyboardheight-64+20);
     }*/

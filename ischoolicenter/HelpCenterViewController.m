@@ -12,7 +12,9 @@
 #import "UIViewController+AMSlideMenu.h"
 
 @interface HelpCenterViewController ()
-
+{
+    NSMutableDictionary *edgeConstants;
+}
 @end
 
 @implementation HelpCenterViewController
@@ -20,6 +22,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     globalvariables=[GlobalVariables singleObj];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     headertitleview=[[UIView alloc]initWithFrame:CGRectMake(70, 0, self.view.bounds.size.width-140, 68)];
     headertitlename=[[UILabel alloc]initWithFrame:CGRectMake(0, 25, headertitleview.frame.size.width, 20)];
@@ -38,6 +41,62 @@
     selectedCategoryRow=0;
     alphabetArray=[[NSArray alloc]initWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",@"N",@"O",@"P",@"Q",@"R",@"S",@"T",@"U",@"V",@"W",@"X",@"Y",@"Z", nil];
     runviewdidappear=TRUE;
+}
+
+- (CGFloat)visibleHelpWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) return width;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleHelpHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) return height;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    return MAX(MIN(MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds)) - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (void)layoutHelpCenterForCurrentSize
+{
+    CGFloat width = [self visibleHelpWidth];
+    CGFloat height = [self visibleHelpHeight];
+    if (width < 1 || height < 1) return;
+    if (!edgeConstants) {
+        edgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            BOOL horizontal = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeTrailing || constraint.firstAttribute == NSLayoutAttributeTrailingMargin) && constraint.secondAttribute == NSLayoutAttributeTrailing;
+            BOOL vertical = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin) && constraint.secondAttribute == NSLayoutAttributeBottom;
+            if (horizontal || vertical) {
+                edgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - height, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = edgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) continue;
+        BOOL vertical = constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin;
+        CGFloat target = original.doubleValue + (vertical ? verticalOverflow : overflow);
+        if (fabs(constraint.constant - target) > 0.5) constraint.constant = target;
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutHelpCenterForCurrentSize];
 }
 
 -(void) viewDidAppear:(BOOL)animated
@@ -89,11 +148,28 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
+    return nil;
+//    if (tableView==categoryTable) {
+//        return [MyClass returnlogintitlewithtitle:@"Category"];
+//    }else{
+//        return nil;
+//    }
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+//    if (tableView==categoryTable) return nil;
+    UIView *header=[[UIView alloc]initWithFrame:CGRectMake(0, 0, tableView.bounds.size.width, 36)];
+    UILabel *label=[[UILabel alloc]initWithFrame:CGRectMake(15, 0, MAX(tableView.bounds.size.width-30, 0), 36)];
+    label.font=[UIFont systemFontOfSize:15];
+    label.textColor=[UIColor secondaryLabelColor];
     if (tableView==categoryTable) {
-        return [MyClass returnlogintitlewithtitle:@"Category"];
+        label.text=[MyClass returnlogintitlewithtitle:@"Category"];
     }else{
-        return [MyClass returnlogintitlewithtitle:@"Video Manual"];;
+        label.text=[MyClass returnlogintitlewithtitle:@"Video Manual"];
     }
+    [header addSubview:label];
+    return header;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath

@@ -385,8 +385,21 @@
         return width;
     }
     CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
-    CGFloat visibleMaxX = MIN(CGRectGetMaxX(frameInWindow), CGRectGetMaxX(window.bounds));
-    return MAX(MIN(visibleMaxX - CGRectGetMinX(frameInWindow), width), 0);
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleEditHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+    return MIN(MAX(bottom.y, 0), height);
 }
 
 - (void)viewDidLayoutSubviews
@@ -416,7 +429,7 @@
 - (void)layoutLeadEditForCurrentSize
 {
     CGFloat width = [self visibleEditWidth];
-    CGFloat height = self.view.bounds.size.height;
+    CGFloat height = [self visibleEditHeight];
     if (width < 1 || height < 1 || !leadTable || !sideselectionview) {
         return;
     }
@@ -455,7 +468,7 @@
 -(void) adjusttablesize
 {
     //if ([globalvariables.leftmenuindex isEqualToString:@"9"]) {
-        leadTable.frame=CGRectMake(178, 70, MAX([self visibleEditWidth] - 178, 0), MAX(self.view.bounds.size.height - keyboardheight - 70, 0));
+        leadTable.frame=CGRectMake(178, 70, MAX([self visibleEditWidth] - 178, 0), MAX([self visibleEditHeight] - keyboardheight - 70, 0));
     /*}else{
         leadTable.frame=CGRectMake(178, 70, 626, 728-keyboardheight-70+20);
     }*/

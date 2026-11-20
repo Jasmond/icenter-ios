@@ -15,7 +15,19 @@
 #import "SceneDelegate.h"
 
 @interface CenterInformationViewController ()
-
+{
+    BOOL sideWindowAdjusting;
+    NSMutableDictionary *edgeConstants;
+    CGFloat laidOutCalendarWidth;
+    CGFloat laidOutCalendarHeight;
+    UIView *centerInfoBackgroundView;
+    UIView *centerInfoLowerBackgroundView;
+    CGFloat laidOutPolicyWidth;
+    UIView *subscriptionEditBackground;
+    UIView *subscriptionSeparator;
+    UIView *deviceTableHeaderView;
+    UIView *loadingIndicatorCenterView;
+}
 @end
 
 //#define leftmargin 7
@@ -42,6 +54,7 @@
     
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     
     hourPickerViewMenu=[NSMutableArray arrayWithObjects:@"00",@"01",@"02",@"03",@"04",@"05",@"06",@"07",@"08",@"09",@"10",@"11",@"12",@"13",@"14",@"15",@"16",@"17",@"18",@"19",@"20",@"21",@"22",@"23",nil];
@@ -334,12 +347,14 @@
     
     UIView *editbackground=[[UIView alloc]initWithFrame:CGRectMake(subscriptiontable.frame.origin.x+subscriptiontable.frame.size.width, devicetable.frame.size.height+devicetable.frame.origin.y, devicetable.frame.size.width, 40)];
     editbackground.backgroundColor=[UIColor grayColor];
+    subscriptionEditBackground=editbackground;
     [subscriptionview addSubview:editbackground];
     
     
     UIView *separator=[[UIView alloc]initWithFrame:CGRectMake(subscriptiontable.frame.origin.x+subscriptiontable.frame.size.width, subscriptiontable.frame.origin.y, 0.8, subscriptiontable.frame.size.height)];
     separator.backgroundColor=[UIColor grayColor];
     separator.alpha=0.4;
+    subscriptionSeparator=separator;
     [subscriptionview addSubview: separator];
     
     [self drawsubscriptiontableheader];
@@ -417,6 +432,7 @@
     UIView *centerview=[[UIView alloc]initWithFrame:CGRectMake((self.view.bounds.size.width-180)/2, (self.view.bounds.size.height-140)/2, 180, 140)];
     centerview.layer.cornerRadius=10;
     centerview.layer.masksToBounds=YES;
+    loadingIndicatorCenterView=centerview;
     [loadingindicatorview addSubview:centerview];
     
     UIImageView *activityImageView=[[UIImageView alloc]init];
@@ -480,8 +496,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -541,6 +560,7 @@
     
     UIView *backgroundview=[[UIView alloc]initWithFrame:CGRectMake(30, 80, contactview.frame.size.width-60, 458)];
     backgroundview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    centerInfoBackgroundView=backgroundview;
     [contactscrollview addSubview:backgroundview];
     
     float mainimage_width=backgroundview.frame.size.height*155/(155*3/4+48);
@@ -673,6 +693,7 @@
     UIView *lowerbackgroundview=[[UIView alloc]initWithFrame:CGRectMake(30, backgroundview.frame.origin.y+backgroundview.frame.size.height, contactview.frame.size.width-60, contactview.frame.size.height-backgroundview.frame.origin.y-backgroundview.frame.size.height-20)];
     lowerbackgroundview.backgroundColor=[UIColor grayColor];
     lowerbackgroundview.layer.opacity=0.5;
+    centerInfoLowerBackgroundView=lowerbackgroundview;
     [contactscrollview addSubview:lowerbackgroundview];
 
     
@@ -1087,9 +1108,7 @@
 -(void) adjusttablesize
 {
     float tableheight=0;
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
-    CGFloat screenHeight = screenSize.height;
+    CGFloat screenHeight = self.view.window ? self.view.window.bounds.size.height : self.view.bounds.size.height;
     
     if (lastviewindex==0) {
         if (keyboardheight==0) {
@@ -1285,6 +1304,243 @@
     mainimagelabel.frame=CGRectMake(mainimage.frame.size.width-(mainimagelabel.frame.size.width+20)-10, 15, mainimagelabel.frame.size.width+20, 25);
 }
 
+- (CGFloat)visibleCenterWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) return width;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleCenterHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) return height;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    return MAX(MIN(MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds)) - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (CGRect)visibleWindowFrame
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) return CGRectZero;
+    if (!self.isViewLoaded || !self.view.window) return window.bounds;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect visible = CGRectIntersection(frameInWindow, window.bounds);
+    if (CGRectIsNull(visible) || visible.size.width < 1 || visible.size.height < 1) return window.bounds;
+    return visible;
+}
+
+- (void)layoutContactCard
+{
+    if (!contactview || !contactscrollview || !centerInfoBackgroundView) return;
+    CGFloat width = contactview.bounds.size.width;
+    CGFloat height = contactview.bounds.size.height;
+    CGFloat visibleBelowTop = [self visibleCenterHeight] - CGRectGetMinY(contactview.frame);
+    if (visibleBelowTop > height) height = visibleBelowTop;
+    if (width < 1 || height < 1) return;
+    contactview.clipsToBounds = NO;
+    if (keyboardheight == 0) {
+        contactscrollview.frame = CGRectMake(0, 0, width, height);
+    } else {
+        CGRect scrollFrame = contactscrollview.frame;
+        scrollFrame.size.width = width;
+        contactscrollview.frame = scrollFrame;
+    }
+    CGFloat cardWidth = MAX(width - 60.0, 0);
+    CGFloat upperHeight = 458.0;
+    CGFloat lowerHeight = height - 80.0 - upperHeight - 20.0;
+    CGFloat contentHeight = height;
+    if (lowerHeight < 140.0) {
+        lowerHeight = 140.0;
+        contentHeight = 80.0 + upperHeight + lowerHeight + 20.0;
+    }
+    contactscrollview.contentSize = CGSizeMake(width, MAX(contentHeight, height));
+    centerInfoBackgroundView.frame = CGRectMake(30, 80, cardWidth, upperHeight);
+    if (centerInfoLowerBackgroundView) {
+        centerInfoLowerBackgroundView.frame = CGRectMake(30, 80.0 + upperHeight, cardWidth, lowerHeight);
+    }
+    if (centernamelabel) centernamelabel.frame = CGRectMake(30, 20, MAX(width - 350.0, 0), 33);
+    if (schoolregnumberLabel) schoolregnumberLabel.frame = CGRectMake(width - 130.0, 20, 100, 33);
+    if (schoolregnumberTitle) schoolregnumberTitle.frame = CGRectMake(width - 300.0, 20, 180, 33);
+    if (centershortnamelabel) centershortnamelabel.frame = CGRectMake(32, 55, MAX(width - 100.0, 0), 20);
+    CGFloat mainimageWidth = upperHeight * 155.0 / (155.0 * 3.0 / 4.0 + 48.0);
+    CGFloat shopfrontHeight = upperHeight * 48.0 / (155.0 * 3.0 / 4.0 + 48.0);
+    CGFloat shopfrontWidth = shopfrontHeight * 4.0 / 3.0;
+    if (mainimage) {
+        mainimage.frame = CGRectMake(cardWidth - mainimageWidth, 0, mainimageWidth, upperHeight - shopfrontHeight);
+        if (centerinfo_addimagebutton) centerinfo_addimagebutton.frame = CGRectMake(mainimage.frame.size.width - 60.0, mainimage.frame.size.height - 60.0, 50, 50);
+    }
+    if (shopfrontimage) shopfrontimage.frame = CGRectMake(cardWidth - mainimageWidth, upperHeight - shopfrontHeight, shopfrontWidth, shopfrontHeight);
+    if (launchimage_landscape) launchimage_landscape.frame = CGRectMake(cardWidth - mainimageWidth + shopfrontWidth, upperHeight - shopfrontHeight, shopfrontWidth, shopfrontHeight);
+    if (launchimage_portrait) launchimage_portrait.frame = CGRectMake(cardWidth - mainimageWidth + shopfrontWidth * 2.0, upperHeight - shopfrontHeight, shopfrontHeight * 9.0 / 16.0, shopfrontHeight);
+    CGFloat linkWidth = MAX(width - 177.0 - 67.0, 0);
+    if (centeremailbutton) centeremailbutton.frame = CGRectMake(177, 560, linkWidth, 30);
+    if (centerwebsitebutton) centerwebsitebutton.frame = CGRectMake(177, 600, linkWidth, 30);
+    if (centerothersbutton) centerothersbutton.frame = CGRectMake(177, 640, linkWidth, 30);
+    if (centeremailaddresstext) centeremailaddresstext.frame = CGRectMake(177, 560, linkWidth, 30);
+    if (centerwebsitetext) centerwebsitetext.frame = CGRectMake(177, 600, linkWidth, 30);
+    if (centerotherstext) centerotherstext.frame = CGRectMake(177, 640, linkWidth, 30);
+    if (scCenterInformationLanguage) scCenterInformationLanguage.frame = CGRectMake(width - 180.0, 15, 150, 30);
+    CGFloat nameWidth = MAX(width - 475.0, 0);
+    if (centernametext) centernametext.frame = CGRectMake(30, 15, nameWidth, 30);
+    if (schoolregnumbertext) schoolregnumbertext.frame = CGRectMake(35.0 + nameWidth, 15, 205, 30);
+    if (centershortnametext) centershortnametext.frame = CGRectMake(30, 50, nameWidth, 25);
+}
+
+- (void)layoutCenterInformationForCurrentSize
+{
+    CGFloat width = [self visibleCenterWidth];
+    CGFloat height = [self visibleCenterHeight];
+    if (width < 1 || height < 1) return;
+    if (!edgeConstants) {
+        edgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            BOOL horizontal = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeTrailing || constraint.firstAttribute == NSLayoutAttributeTrailingMargin) && constraint.secondAttribute == NSLayoutAttributeTrailing;
+            BOOL vertical = constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeBottom && constraint.secondAttribute == NSLayoutAttributeBottom;
+            if (horizontal || vertical) {
+                edgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat visibleBottom = self.view.bounds.size.height;
+    if (self.view.window) {
+        CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(self.view.window.bounds)) fromView:nil];
+        visibleBottom = MIN(MAX(bottom.y, 0), self.view.bounds.size.height);
+    }
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - visibleBottom, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = edgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) continue;
+        BOOL vertical = constraint.firstAttribute == NSLayoutAttributeBottom;
+        CGFloat target = original.doubleValue + (vertical ? verticalOverflow : overflow);
+        if (fabs(constraint.constant - target) > 0.5) constraint.constant = target;
+    }
+    for (UIView *subview in self.view.subviews) {
+        if (subview == headertitleview || subview == centerinfo_editbutton || subview == centerinfo_savebutton) continue;
+        if (subview.frame.origin.y < 1 && subview.frame.origin.x < 1 && subview.frame.size.height >= 60 && subview.frame.size.height <= 76) {
+            CGRect frame = subview.frame;
+            frame.size.width = width;
+            subview.frame = frame;
+        }
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+    if (centerinfo_editbutton) centerinfo_editbutton.frame = CGRectMake(width - 110, 31, 80, 30);
+    if (centerinfo_savebutton) centerinfo_savebutton.frame = CGRectMake(width - 110, 31, 80, 30);
+    CGFloat calendarWidth = MAX(width - 8.0, 0);
+    CGFloat calendarHeight = MAX(height - 108.0 - 4.0, 0);
+    if (horizontalseparation > 0 && (fabs(calendarWidth - laidOutCalendarWidth) > 0.5 || fabs(calendarHeight - laidOutCalendarHeight) > 0.5)) {
+        cellwidth = MAX((width - 3 * horizontalseparation - 8.0) / 28.0, 1);
+        leftmargin = (width - cellwidth * 28.0 - 3 * horizontalseparation - 8.0) / 2.0;
+        cellheight = (calendarHeight - topmargin - 2 * verticalseparation - 3 * headerheight - 4) / 21.0;
+        if (monthnameArray.count > 0) {
+            laidOutCalendarWidth = calendarWidth;
+            laidOutCalendarHeight = calendarHeight;
+            [self drawCalendar];
+        }
+    }
+    [self layoutContactCard];
+    [self layoutPolicyForCurrentSize];
+    [self layoutSubscriptionForCurrentSize];
+    [self layoutLoadingIndicator];
+}
+
+- (void)layoutLoadingIndicator
+{
+    if (!loadingindicatorview) return;
+    CGRect bounds = self.view.bounds;
+    CGRect visible = bounds;
+    UIWindow *window = self.view.window;
+    if (window) {
+        CGRect frameInWindow = [self.view convertRect:bounds toView:nil];
+        CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+        CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+        CGFloat menuSlide = MIN(leftShift, rightOverflow);
+        CGPoint bottom = [self.view convertPoint:CGPointMake(0, CGRectGetMaxY(window.bounds)) fromView:nil];
+        visible = CGRectMake(0, 0, MAX(bounds.size.width - (rightOverflow - menuSlide), 0), MIN(MAX(bottom.y, 0), bounds.size.height));
+    }
+    loadingindicatorview.frame = visible;
+    if (loadingIndicatorCenterView) {
+        loadingIndicatorCenterView.frame = CGRectMake((visible.size.width - 180.0) / 2.0, (visible.size.height - 140.0) / 2.0, 180, 140);
+    }
+}
+
+- (void)layoutSubscriptionForCurrentSize
+{
+    if (!subscriptionview || !subscriptiontable || !devicetable) return;
+    CGFloat width = subscriptionview.bounds.size.width;
+    CGFloat height = subscriptionview.bounds.size.height;
+    if (width < 1 || height < 1) return;
+    CGFloat tableX = CGRectGetMaxX(subscriptiontable.frame);
+    CGFloat tableY = subscriptiontable.frame.origin.y;
+    CGFloat tableWidth = MAX(width - tableX - 20.0, 0);
+    CGFloat tableHeight = MAX(height - tableY - 60.0, 0);
+    devicetable.frame = CGRectMake(tableX, tableY, tableWidth, tableHeight);
+    if (subscriptionEditBackground) subscriptionEditBackground.frame = CGRectMake(tableX, tableY + tableHeight, tableWidth, 40);
+    if (subscriptionSeparator) subscriptionSeparator.frame = CGRectMake(tableX, tableY, 0.8, tableHeight + 40.0);
+    if (deviceTableHeaderView) deviceTableHeaderView.frame = CGRectMake(tableX, 25, tableWidth, 40);
+    if (devicelisteditbutton) devicelisteditbutton.frame = CGRectMake(width - 140.0, tableY + tableHeight, 100, 40);
+    if (devicecountlabel) devicecountlabel.frame = CGRectMake(tableX + 15.0, tableY + tableHeight, MAX(tableWidth - 130.0, 0), 40);
+}
+
+- (CGFloat)policyTextWidth
+{
+    CGFloat width = policytable.bounds.size.width;
+    if (width < 1) width = policytable.frame.size.width;
+    return MAX(width - 56.0, 0);
+}
+
+- (void)layoutPolicyForCurrentSize
+{
+    if (!generalPolicyView) return;
+    CGFloat width = generalPolicyView.bounds.size.width;
+    CGFloat height = generalPolicyView.bounds.size.height;
+    if (width < 1 || height < 1) return;
+    if (scpolicy) scpolicy.frame = CGRectMake(10, 11, MAX(width - 50.0, 0), 29);
+    if (policy_editbutton) policy_editbutton.frame = CGRectMake(width - 37.0, 10, 31, 31);
+    if (policy_savebutton) policy_savebutton.frame = CGRectMake(width - 138.0, height - 50.0, 100, 35);
+    if (policy_cancelbutton) policy_cancelbutton.frame = CGRectMake(width - 248.0, height - 50.0, 100, 35);
+    if (policy_addbutton) policy_addbutton.frame = CGRectMake((width - 100.0) / 2.0, (height - 35.0) / 2.0, 100, 35);
+    if (scPolicyLanguage) scPolicyLanguage.frame = CGRectMake(30, height - 50.0, 150, 35);
+    if (policytable && fabs(width - laidOutPolicyWidth) > 0.5) {
+        laidOutPolicyWidth = width;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [policytable reloadData];
+        });
+    }
+}
+
+- (void)pinOpenSideWindowToVisibleEdge
+{
+    if (sideWindowAdjusting || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) return;
+    CGRect visible = [self visibleWindowFrame];
+    if (visible.size.width < 1.0 || visible.size.height < 1.0) return;
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, visible.size.width);
+    sidewindowview.frame = CGRectMake(CGRectGetMaxX(visible) - panelWidth, visible.origin.y, panelWidth, visible.size.height);
+    if (sidewindowviewclosebutton && !sidewindowviewclosebutton.hidden) sidewindowviewclosebutton.frame = visible;
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) continue;
+        child.frame = sidewindowview.bounds;
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutCenterInformationForCurrentSize];
+    [self pinOpenSideWindowToVisibleEdge];
+}
+
 -(void) updateheadercentertitle
 {
     [headercentername sizeToFit];
@@ -1387,7 +1643,7 @@
     globalvariables.lastviewcontroller=(NSString *)self;
     
     if (runviewdidappear) {
-            if (sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+            if (sidewindowview.hidden || sidewindowview.frame.size.width < 1) {
             lastviewindex=0;
             
             productcategoryselected=@"All";
@@ -2500,10 +2756,13 @@
             policyonecategory=[policyallcategory objectAtIndex:policy_selectedsegment];
             policyrecordobject=[policyonecategory objectAtIndex:indexPath.section];
             
-            UILabel *content=[[UILabel alloc]initWithFrame:CGRectMake(10, 0, policytable.contentSize.width-30, 20)];
+            CGFloat textWidth = [self policyTextWidth];
+            UILabel *content=[[UILabel alloc]initWithFrame:CGRectMake(10, 0, textWidth, 20)];
             content.font=[UIFont systemFontOfSize:16];
             content.textColor=[UIColor whiteColor];
             content.adjustsFontSizeToFitWidth=NO;
+            content.lineBreakMode=NSLineBreakByWordWrapping;
+            content.preferredMaxLayoutWidth=textWidth;
             content.text=[policyrecordobject valueForKey:[NSString stringWithFormat:@"content%@",policy_languageselected]];
             content.numberOfLines=0;
             
@@ -2552,10 +2811,13 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         
         if (!policy_editmode) {
-            UILabel *policycontent=[[UILabel alloc]initWithFrame:CGRectMake(10, 10, policytable.contentSize.width-20, 20)];
+            CGFloat textWidth = [self policyTextWidth];
+            UILabel *policycontent=[[UILabel alloc]initWithFrame:CGRectMake(10, 10, textWidth, 20)];
             policycontent.font=[UIFont systemFontOfSize:16];
             policycontent.textColor=[UIColor darkTextColor];
             policycontent.adjustsFontSizeToFitWidth=NO;
+            policycontent.lineBreakMode=NSLineBreakByWordWrapping;
+            policycontent.preferredMaxLayoutWidth=textWidth;
             policycontent.numberOfLines=0;
             cell.backgroundColor=[UIColor clearColor];
             [cell.contentView addSubview:policycontent];
@@ -2564,9 +2826,10 @@
             policycontent.text=[policyrecordobject valueForKey:[NSString stringWithFormat:@"content%@",policy_languageselected]];
             [policycontent sizeToFit];
             CGRect myFrame=policycontent.frame;
+            myFrame.size.width=textWidth;
             policycontent.frame=myFrame;
         }else{
-            policycontenttext = [[UITextView alloc]initWithFrame:CGRectMake(15, 10, policytable.contentSize.width-40, 200)];
+            policycontenttext = [[UITextView alloc]initWithFrame:CGRectMake(15, 10, [self policyTextWidth], 200)];
             policycontenttext.font=[UIFont systemFontOfSize:16];
             policycontenttext.textColor=[UIColor darkGrayColor];
             policycontenttext.layer.cornerRadius=3;
@@ -3810,7 +4073,7 @@
         viewController.delegate=self;
         viewController.salesrecords=[[yetGivenProductDict valueForKey:prodObject.code] valueForKey:@"salesrecords"];
 
-        viewController.view.frame=self->mainWindow.bounds;
+        viewController.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:viewController.view];
         [self addChildViewController:viewController];
         [viewController didMoveToParentViewController:self];
@@ -4489,7 +4752,7 @@
             staffpopover.GroupArray=GroupArray;
             staffpopover.StaffTableMode=@"View";
             
-            staffpopover.view.frame=self->mainWindow.bounds;
+            staffpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:staffpopover.view];
             [self addChildViewController:staffpopover];
             [staffpopover didMoveToParentViewController:self];
@@ -4512,7 +4775,7 @@
             subjectpopover.SubjectTableMode=@"View";
             subjectpopover.SubjectRecordArray=[MyClass retrievecentersubjectinformationwithstatus:@"All" category:@"All" flushcachedata:NO];
             
-            subjectpopover.view.frame=self->mainWindow.bounds;
+            subjectpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:subjectpopover.view];
             [self addChildViewController:subjectpopover];
             [subjectpopover didMoveToParentViewController:self];
@@ -4535,7 +4798,7 @@
             productpopover.ProductCategoryArray=productcategoryallarray;
             productpopover.ProductCodeArray=/*productcodeallarray*/[self returnallproductcode];
 
-            productpopover.view.frame=self->mainWindow.bounds;
+            productpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:productpopover.view];
             [self addChildViewController:productpopover];
             [productpopover didMoveToParentViewController:self];
@@ -4580,7 +4843,7 @@
                 mediapopover.MarketingTableMode=@"View";
                 mediapopover.MarketingTableCategory=@"media";
                 
-                mediapopover.view.frame=self->mainWindow.bounds;
+                mediapopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:mediapopover.view];
                 [self addChildViewController:mediapopover];
                 [mediapopover didMoveToParentViewController:self];
@@ -4598,7 +4861,7 @@
                 sourcepopover.MarketingTableMode=@"View";
                 sourcepopover.MarketingTableCategory=@"source";
                 
-                sourcepopover.view.frame=self->mainWindow.bounds;
+                sourcepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:sourcepopover.view];
                 [self addChildViewController:sourcepopover];
                 [sourcepopover didMoveToParentViewController:self];
@@ -4616,7 +4879,7 @@
                 sourcepopover.MarketingTableMode=@"View";
                 sourcepopover.MarketingTableCategory=@"promotion";
                 
-                sourcepopover.view.frame=self->mainWindow.bounds;
+                sourcepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:sourcepopover.view];
                 [self addChildViewController:sourcepopover];
                 [sourcepopover didMoveToParentViewController:self];
@@ -4634,7 +4897,7 @@
                 sourcepopover.MarketingTableMode=@"View";
                 sourcepopover.MarketingTableCategory=@"coupon";
                 
-                sourcepopover.view.frame=self->mainWindow.bounds;
+                sourcepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:sourcepopover.view];
                 [self addChildViewController:sourcepopover];
                 [sourcepopover didMoveToParentViewController:self];
@@ -4654,7 +4917,7 @@
             classroompopover.ClassroomRecordObject=[filteredClassroomArray objectAtIndex:indexPath.row];
             classroompopover.ClassroomTableMode=@"View";
             
-            classroompopover.view.frame=self->mainWindow.bounds;
+            classroompopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:classroompopover.view];
             [self addChildViewController:classroompopover];
             [classroompopover didMoveToParentViewController:self];
@@ -5195,7 +5458,7 @@
         staffpopover.PrivilegeArray=localprivilegearray;
         staffpopover.GroupArray=GroupArray;
         
-        staffpopover.view.frame=self->mainWindow.bounds;
+        staffpopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:staffpopover.view];
         [self addChildViewController:staffpopover];
         [staffpopover didMoveToParentViewController:self];
@@ -5216,7 +5479,7 @@
         subjectpopover.SubjectTableMode=@"Add";
         subjectpopover.SubjectRecordArray=[MyClass retrievecentersubjectinformationwithstatus:@"All" category:@"All" flushcachedata:NO];
         
-        subjectpopover.view.frame=self->mainWindow.bounds;
+        subjectpopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:subjectpopover.view];
         [self addChildViewController:subjectpopover];
         [subjectpopover didMoveToParentViewController:self];
@@ -5239,7 +5502,7 @@
         productpopover.ProductCategoryArray=productcategoryallarray;
         productpopover.ProductCodeArray=/*productcodeallarray*/[self returnallproductcode];
         
-        productpopover.view.frame=self->mainWindow.bounds;
+        productpopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:productpopover.view];
         [self addChildViewController:productpopover];
         [productpopover didMoveToParentViewController:self];
@@ -5338,6 +5601,7 @@
     //device list
     UIView *devicetableheaderview=[[UIView alloc]initWithFrame:CGRectMake(subscriptiontable.frame.origin.x+subscriptiontable.frame.size.width, 25, devicetable.frame.size.width, 40)];
     devicetableheaderview.backgroundColor=[UIColor grayColor];
+    deviceTableHeaderView=devicetableheaderview;
     [subscriptionview addSubview:devicetableheaderview];
     
     
@@ -6214,7 +6478,7 @@
             marketingpopover.MarketingRecordObject=nil;
             marketingpopover.MarketingTableMode=@"Add";
             
-            marketingpopover.view.frame=self->mainWindow.bounds;
+            marketingpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:marketingpopover.view];
             [self addChildViewController:marketingpopover];
             [marketingpopover didMoveToParentViewController:self];
@@ -6232,7 +6496,7 @@
             marketingpopover.MarketingRecordObject=nil;
             marketingpopover.MarketingTableMode=@"Add";
             
-            marketingpopover.view.frame=self->mainWindow.bounds;
+            marketingpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:marketingpopover.view];
             [self addChildViewController:marketingpopover];
             [marketingpopover didMoveToParentViewController:self];
@@ -6250,7 +6514,7 @@
             marketingpopover.MarketingRecordObject=nil;
             marketingpopover.MarketingTableMode=@"Add";
             
-            marketingpopover.view.frame=self->mainWindow.bounds;
+            marketingpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:marketingpopover.view];
             [self addChildViewController:marketingpopover];
             [marketingpopover didMoveToParentViewController:self];
@@ -6268,7 +6532,7 @@
             marketingpopover.MarketingRecordObject=nil;
             marketingpopover.MarketingTableMode=@"Add";
             
-            marketingpopover.view.frame=self->mainWindow.bounds;
+            marketingpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:marketingpopover.view];
             [self addChildViewController:marketingpopover];
             [marketingpopover didMoveToParentViewController:self];
@@ -6292,7 +6556,7 @@
         classroompopover.ClassroomRecordObject=nil;
         classroompopover.ClassroomTableMode=@"Add";
         
-        classroompopover.view.frame=self->mainWindow.bounds;
+        classroompopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:classroompopover.view];
         [self addChildViewController:classroompopover];
         [classroompopover didMoveToParentViewController:self];
@@ -9783,25 +10047,49 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    CGRect visible = [self visibleWindowFrame];
+    CGFloat edge = CGRectGetMaxX(visible);
+    CGFloat panelY = visible.origin.y;
+    CGFloat panelHeight = visible.size.height;
+    if (edge < 1) {
+        edge = mainWindow.bounds.size.width;
+        panelY = 0;
+        panelHeight = mainWindow.bounds.size.height;
+    }
+    CGFloat panelWidth = width > 0 ? MIN(width, visible.size.width > 1 ? visible.size.width : edge) : 0;
+    BOOL alreadyClosed = ailoadindicator.hidden && sidewindowview.frame.size.width < 1 && fabs(sidewindowview.frame.origin.x - edge) < 1;
+    if (alreadyClosed) {
         return;
     }
-    
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (fabs(sidewindowview.frame.origin.x - (edge - panelWidth)) < 1 && fabs(sidewindowview.frame.size.width - panelWidth) < 1 && fabs(sidewindowview.frame.size.height - panelHeight) < 1) {
         return;
     }
-    
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.size.width < 1) {
         [MyClass playsoundwithoption:@"open"];
     }
-    
+    if (visible.size.width > 1) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    sideWindowAdjusting = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(edge-panelWidth, panelY, panelWidth, panelHeight);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< edge) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinOpenSideWindowToVisibleEdge];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];

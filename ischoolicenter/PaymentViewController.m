@@ -17,7 +17,7 @@
 #import "SceneDelegate.h"
 
 @interface PaymentViewController ()
-
+@property (nonatomic, assign) BOOL sideWindowAdjusting;
 @end
 
 @implementation PaymentViewController
@@ -128,6 +128,7 @@
     
     
     classdayarray=[[NSArray alloc]initWithObjects:@"All",@"Mon",@"Tue",@"Wed",@"Thu",@"Fri",@"Sat",@"Sun",@"TBD", nil];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     [self createmenubar];
     [self createview];
@@ -186,8 +187,10 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -230,6 +233,106 @@
     PaymentViewButton.enabled=YES;
     OutstandingViewButton.enabled=YES;
     InvoiceViewButton.enabled=YES;
+}
+
+- (UIButton *)selectedPaymentMenuButton
+{
+    for (UIButton *button in @[BankinViewButton, PaymentViewButton, OutstandingViewButton, InvoiceViewButton]) {
+        if (button && !button.enabled) {
+            return button;
+        }
+    }
+    return BankinViewButton;
+}
+
+- (void)layoutPaymentMenuHighlight
+{
+    UIButton *button = [self selectedPaymentMenuButton];
+    if (!button || !menubottombar || !menubottombar.superview) {
+        return;
+    }
+    CGRect frame = [button convertRect:button.bounds toView:menubottombar.superview];
+    if (CGRectIsEmpty(frame)) {
+        return;
+    }
+    menubottombar.frame = frame;
+}
+
+- (CGFloat)visiblePaymentWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (void)layoutPaymentForCurrentSize
+{
+    CGFloat width = [self visiblePaymentWidth];
+    if (width < 1) {
+        return;
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    BOOL changed = NO;
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeTrailing && constraint.secondAttribute == NSLayoutAttributeTrailing) {
+            if (fabs(constraint.constant - overflow) > 0.5) {
+                constraint.constant = overflow;
+                changed = YES;
+            }
+        }
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    if (reloadbutton) {
+        reloadbutton.frame = CGRectMake(width - 45, 34, 28, 28);
+    }
+    [self updateheadercentertitle];
+    if (changed) {
+        return;
+    }
+    [self layoutPaymentMenuHighlight];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutPaymentForCurrentSize];
+    [self pinPaymentSideWindow];
+}
+
+- (void)pinPaymentSideWindow
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (self.sideWindowAdjusting || !window || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) {
+        return;
+    }
+    mainWindow = window;
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, window.bounds.size.width);
+    sidewindowview.frame = CGRectMake(window.bounds.size.width - panelWidth, 0, panelWidth, window.bounds.size.height);
+    if (sidewindowviewclosebutton) {
+        if (sidewindowviewclosebutton.superview != window) {
+            [window addSubview:sidewindowviewclosebutton];
+        }
+        sidewindowviewclosebutton.frame = window.bounds;
+    }
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) {
+            continue;
+        }
+        child.frame = sidewindowview.bounds;
+    }
 }
 
 -(void) createview{
@@ -4431,7 +4534,7 @@
     [self startsidewindowanimationwithwidth:300];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        paymentviewcontroller.view.frame=self->mainWindow.bounds;
+        paymentviewcontroller.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:paymentviewcontroller.view];
         [self addChildViewController:paymentviewcontroller];
         [paymentviewcontroller didMoveToParentViewController:self];
@@ -4503,7 +4606,7 @@
     [self startsidewindowanimationwithwidth:300];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        viewcontroller.view.frame=self->mainWindow.bounds;
+        viewcontroller.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:viewcontroller.view];
         [self addChildViewController:viewcontroller];
         [viewcontroller didMoveToParentViewController:self];
@@ -5122,9 +5225,7 @@
     if (keyboardheight>0) {
         
         float tableheight;
-        CGRect screenBound = [[UIScreen mainScreen] bounds];
-        CGSize screenSize = screenBound.size;
-        CGFloat screenHeight = screenSize.height;
+        CGFloat screenHeight = self.view.window ? self.view.window.bounds.size.height : self.view.bounds.size.height;
         
         
         if (keyboardheight==0) {
@@ -5932,9 +6033,7 @@
 -(void) adjusttablesize
 {
     float tableheight;
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
-    CGFloat screenHeight = screenSize.height;
+    CGFloat screenHeight = self.view.window ? self.view.window.bounds.size.height : self.view.bounds.size.height;
     
     
     if (keyboardheight==0) {
@@ -6031,7 +6130,7 @@
         //globalvariables.documentfolder.defaultcheckedsalesreceiptpaymentkeys=defaultcheckedsalesreceiptpaymentkeys;
         documentfolderpopover.menubutton=2;
         
-        documentfolderpopover.view.frame=self->mainWindow.bounds;
+        documentfolderpopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:documentfolderpopover.view];
         [self addChildViewController:documentfolderpopover];
         documentfolderpopover.view.clipsToBounds=YES;
@@ -6858,25 +6957,43 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    mainWindow = window;
+    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==window.bounds.size.width) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (window.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - window.bounds.size.height) < 0.5) {
         return;
     }
     
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.origin.x== window.bounds.size.width) {
         [MyClass playsoundwithoption:@"open"];
     }
     
+    self.sideWindowAdjusting = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(window.bounds.size.width-width, 0, width, window.bounds.size.height);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< window.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        self.sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinPaymentSideWindow];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -6964,7 +7081,7 @@
         [PaymentViewButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
 
         [UIView animateWithDuration:0.3f animations:^{
-            [menubottombar setFrame:CGRectMake(self.view.frame.size.width*2/4, 68, OutstandingViewButton.frame.size.width, OutstandingViewButton.frame.size.height)];
+            [self layoutPaymentMenuHighlight];
         } completion:nil];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -6993,7 +7110,7 @@
         [PaymentViewButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
 
         [UIView animateWithDuration:0.3f animations:^{
-            [menubottombar setFrame:CGRectMake(0, 68, OutstandingViewButton.frame.size.width, OutstandingViewButton.frame.size.height)];
+            [self layoutPaymentMenuHighlight];
         } completion:nil];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -7021,7 +7138,7 @@
         [PaymentViewButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         
         [UIView animateWithDuration:0.3f animations:^{
-            [menubottombar setFrame:CGRectMake(self.view.frame.size.width/4*3, 68, OutstandingViewButton.frame.size.width, OutstandingViewButton.frame.size.height)];
+            [self layoutPaymentMenuHighlight];
         } completion:nil];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -7049,7 +7166,7 @@
         [PaymentViewButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         
         [UIView animateWithDuration:0.3f animations:^{
-            [menubottombar setFrame:CGRectMake(self.view.frame.size.width/4, 68, OutstandingViewButton.frame.size.width, OutstandingViewButton.frame.size.height)];
+            [self layoutPaymentMenuHighlight];
         } completion:nil];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

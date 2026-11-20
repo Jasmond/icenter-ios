@@ -22,7 +22,12 @@
 
 
 @interface MessageViewController ()
-
+{
+    NSMutableDictionary *messageTrailingConstants;
+    NSMutableDictionary *messageBottomConstants;
+    CGRect keyboardFrameInScreen;
+    BOOL sideWindowAdjusting;
+}
 @end
 
 #define photosize 175
@@ -96,8 +101,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -256,6 +264,7 @@
 - (void)keyboardWillHide: (NSNotification *) notif{
     
     keyboardshow=FALSE;
+    keyboardFrameInScreen = CGRectZero;
     keyboardheight=0;
     [self adjusttablesize];
     [self paddingtableifneeded];
@@ -264,22 +273,20 @@
 - (void)keyboardDidHide: (NSNotification *) notif{
     
     keyboardshow=FALSE;
+    keyboardFrameInScreen = CGRectZero;
     keyboardheight=0;
     [self adjusttablesize];
 }
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notif
 {
-    CGSize keyboardSize = [[[notif userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardFrameInScreen = [[[notif userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     [self adjusttablesize];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardFrameInScreen = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     [self adjusttablesize];
     if (scmessageview.selectedSegmentIndex==0) {
         [self paddingtableifneeded];
@@ -323,9 +330,36 @@
     return ((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).sendmessage;
 }
 
+- (CGFloat)visibleMessageHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) {
+        return height;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat visibleMaxY = MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds));
+    return MAX(MIN(visibleMaxY - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (CGFloat)composerBottomInset
+{
+    CGFloat overflow = MAX(self.view.bounds.size.height - [self visibleMessageHeight], 0);
+    CGFloat overlap = 0;
+    UIWindow *window = self.view.window;
+    if (window && !CGRectIsEmpty(keyboardFrameInScreen)) {
+        CGRect keyboardInWindow = [window convertRect:keyboardFrameInScreen fromWindow:nil];
+        CGRect overlapRect = CGRectIntersection(keyboardInWindow, [self visibleWindowFrame]);
+        if (!CGRectIsNull(overlapRect)) {
+            overlap = overlapRect.size.height;
+        }
+    }
+    return overlap + overflow;
+}
+
 -(void) adjusttablesize
 {
-    messageinputtextbottomconstraint.constant=keyboardheight;
+    messageinputtextbottomconstraint.constant=[self composerBottomInset];
 }
 
 
@@ -383,6 +417,121 @@
     slideToCancelTitle.text=[MyClass returntitlewithtitle:@"Release here to cancel"];
     scsender.hidden=!((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).sendmessagecenterrole;
     [self updateheadercentertitle];
+}
+
+- (CGFloat)visibleMessageWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (void)layoutMessageForCurrentSize
+{
+    CGFloat width = [self visibleMessageWidth];
+    if (width < 1) {
+        return;
+    }
+    if (!messageTrailingConstants) {
+        messageTrailingConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeTrailing && constraint.secondAttribute == NSLayoutAttributeTrailing) {
+                messageTrailingConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat bottomInset = [self composerBottomInset];
+    if (!messageBottomConstants) {
+        messageBottomConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            BOOL pinsToBottom = constraint.firstItem == self.view && constraint.secondAttribute == NSLayoutAttributeBottom && (constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin);
+            if (pinsToBottom && constraint != messageinputtextbottomconstraint) {
+                messageBottomConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeTrailing && constraint.secondAttribute == NSLayoutAttributeTrailing) {
+            NSNumber *original = messageTrailingConstants[[NSValue valueWithNonretainedObject:constraint]];
+            CGFloat target = (original ? original.doubleValue : 0) + overflow;
+            if (fabs(constraint.constant - target) > 0.5) {
+                constraint.constant = target;
+            }
+        }
+        NSNumber *bottomOriginal = messageBottomConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (bottomOriginal) {
+            CGFloat verticalOverflow = MAX(self.view.bounds.size.height - [self visibleMessageHeight], 0);
+            CGFloat target = bottomOriginal.doubleValue + verticalOverflow;
+            if (fabs(constraint.constant - target) > 0.5) {
+                constraint.constant = target;
+            }
+        }
+    }
+    if (messageinputtextbottomconstraint && fabs(messageinputtextbottomconstraint.constant - bottomInset) > 0.5) {
+        messageinputtextbottomconstraint.constant = bottomInset;
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    if (headertitleview && fabs(headertitleview.frame.size.width - titleWidth) > 0.5) {
+        headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+        headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+        switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+        [self updateheadercentertitle];
+    }
+}
+
+- (CGRect)visibleWindowFrame
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return CGRectZero;
+    }
+    if (!self.isViewLoaded || !self.view.window) {
+        return window.bounds;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect visible = CGRectIntersection(frameInWindow, window.bounds);
+    if (CGRectIsNull(visible) || visible.size.width < 1 || visible.size.height < 1) {
+        return window.bounds;
+    }
+    return visible;
+}
+
+- (void)pinOpenSideWindowToVisibleEdge
+{
+    if (sideWindowAdjusting || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) {
+        return;
+    }
+    CGRect visible = [self visibleWindowFrame];
+    if (visible.size.width < 1.0 || visible.size.height < 1.0) {
+        return;
+    }
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, visible.size.width);
+    CGRect target = CGRectMake(CGRectGetMaxX(visible) - panelWidth, visible.origin.y, panelWidth, visible.size.height);
+    sidewindowview.frame = target;
+    if (sidewindowviewclosebutton && !sidewindowviewclosebutton.hidden) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) {
+            continue;
+        }
+        child.frame = sidewindowview.bounds;
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutMessageForCurrentSize];
+    [self pinOpenSideWindowToVisibleEdge];
 }
 
 -(void) updateheadercentertitle
@@ -486,7 +635,7 @@
                 return;
             }
             
-            messagepopover.view.frame=self->mainWindow.bounds;
+            messagepopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:messagepopover.view];
             [self addChildViewController:messagepopover];
             [messagepopover didMoveToParentViewController:self];
@@ -512,9 +661,7 @@
                 pickerviewcontroller.preferredContentSize=CGSizeMake(320, 40*NewContactArray.count);
                 pickerviewcontroller.itemsarray=NewContactArray;
                 
-                CGRect frame=mainWindow.bounds;
-                frame.size.width=320;
-                pickerviewcontroller.view.frame=frame;
+                pickerviewcontroller.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:pickerviewcontroller.view];
                 [self addChildViewController:pickerviewcontroller];
                 [pickerviewcontroller didMoveToParentViewController:self];
@@ -574,25 +721,51 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    CGRect visible = [self visibleWindowFrame];
+    CGFloat edge = CGRectGetMaxX(visible);
+    CGFloat panelY = visible.origin.y;
+    CGFloat panelHeight = visible.size.height;
+    if (edge < 1) {
+        edge = mainWindow.bounds.size.width;
+        panelY = 0;
+        panelHeight = mainWindow.bounds.size.height;
+    }
+    CGFloat panelWidth = width > 0 ? MIN(width, visible.size.width > 1 ? visible.size.width : edge) : 0;
+    BOOL alreadyClosed = ailoadindicator.hidden && sidewindowview.frame.size.width < 1 && fabs(sidewindowview.frame.origin.x - edge) < 1;
+    if (alreadyClosed) {
+        return;
+    }
+    if (fabs(sidewindowview.frame.origin.x - (edge - panelWidth)) < 1 && fabs(sidewindowview.frame.size.width - panelWidth) < 1 && fabs(sidewindowview.frame.size.height - panelHeight) < 1) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
-        return;
-    }
-    
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.size.width < 1) {
         [MyClass playsoundwithoption:@"open"];
     }
+    if (visible.size.width > 1) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    sideWindowAdjusting = YES;
     
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(edge-panelWidth, panelY, panelWidth, panelHeight);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< edge) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinOpenSideWindowToVisibleEdge];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -2663,7 +2836,7 @@
                 messagepopover.allstaffarray=allstaffarray;
                 messagepopover.staffgrouparray=staffgrouparray;
                 
-                messagepopover.view.frame=self->mainWindow.bounds;
+                messagepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:messagepopover.view];
                 [self addChildViewController:messagepopover];
                 [messagepopover didMoveToParentViewController:self];
@@ -2683,7 +2856,7 @@
                 messagepopover.allstaffarray=allstaffarray;
                 messagepopover.staffgrouparray=staffgrouparray;
                 
-                messagepopover.view.frame=self->mainWindow.bounds;
+                messagepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:messagepopover.view];
                 [self addChildViewController:messagepopover];
                 [messagepopover didMoveToParentViewController:self];
@@ -2810,7 +2983,7 @@
                 messagepopover.allstaffarray=allstaffarray;
                 messagepopover.staffgrouparray=staffgrouparray;
                 
-                messagepopover.view.frame=self->mainWindow.bounds;
+                messagepopover.view.frame=self->sidewindowview.bounds;
                 [self->sidewindowview addSubview:messagepopover.view];
                 [self addChildViewController:messagepopover];
                 [messagepopover didMoveToParentViewController:self];
@@ -3301,9 +3474,7 @@
             pickerviewcontroller.itemsarray=readstatusdetailsarray;
             
             //pickerviewcontroller.view.frame=self->mainWindow.bounds;
-            CGRect frame=mainWindow.bounds;
-            frame.size.width=320;
-            pickerviewcontroller.view.frame=frame;
+            pickerviewcontroller.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:pickerviewcontroller.view];
             [self addChildViewController:pickerviewcontroller];
             [pickerviewcontroller didMoveToParentViewController:self];
@@ -3329,9 +3500,7 @@
         pickerviewcontroller.itemsarray=NewContactArray;
         pickerviewcontroller.multipleSelection=YES;
 
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
+        pickerviewcontroller.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];
@@ -3566,9 +3735,7 @@
         pickerviewcontroller.itemsarray=allreadstatusarray;
         
         //pickerviewcontroller.view.frame=self->mainWindow.bounds;
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
+        pickerviewcontroller.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];

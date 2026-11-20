@@ -412,8 +412,10 @@
     if (CGRectIsEmpty(safeFrame) || safeFrame.size.width < 1) {
         return self.view.safeAreaInsets.right;
     }
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
     CGFloat overflow = CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(safeFrame);
-    return MAX(0, overflow);
+    CGFloat menuSlide = MIN(leftShift, MAX(overflow, 0));
+    return MAX(0, overflow - menuSlide);
 }
 
 -(void) applyVisibleTrailingInset
@@ -2979,6 +2981,9 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    }
     if (!mainWindow) {
         return;
     }

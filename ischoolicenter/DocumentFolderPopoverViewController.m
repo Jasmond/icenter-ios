@@ -391,8 +391,10 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -5005,6 +5007,12 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
@@ -5018,12 +5026,20 @@
     }
     
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];

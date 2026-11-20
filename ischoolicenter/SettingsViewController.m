@@ -13,7 +13,9 @@
 #import "MyTableViewCell.h"
 
 @interface SettingsViewController ()
-
+{
+    NSMutableDictionary *edgeConstants;
+}
 @end
 
 #define menutablewidth 350
@@ -38,6 +40,7 @@
     [super viewDidLoad];
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
     headertitleview=[[UIView alloc]initWithFrame:CGRectMake(70, 0, self.view.bounds.size.width-140, 68)];
     headertitlename=[[UILabel alloc]initWithFrame:CGRectMake(0, 25, headertitleview.frame.size.width, 20)];
@@ -543,6 +546,78 @@
     
     
     
+}
+
+- (CGFloat)visibleSettingsWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) return width;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleSettingsHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) return height;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    return MAX(MIN(MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds)) - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (void)layoutSettingsForCurrentSize
+{
+    CGFloat width = [self visibleSettingsWidth];
+    CGFloat height = [self visibleSettingsHeight];
+    if (width < 1 || height < 1) return;
+    if (!edgeConstants) {
+        edgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            BOOL horizontal = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeTrailing || constraint.firstAttribute == NSLayoutAttributeTrailingMargin) && constraint.secondAttribute == NSLayoutAttributeTrailing;
+            BOOL vertical = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin) && constraint.secondAttribute == NSLayoutAttributeBottom;
+            if (horizontal || vertical) {
+                edgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - height, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = edgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) continue;
+        BOOL vertical = constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin;
+        CGFloat target = original.doubleValue + (vertical ? verticalOverflow : overflow);
+        if (fabs(constraint.constant - target) > 0.5) constraint.constant = target;
+    }
+    CGFloat contentWidth = MAX(width - menutablewidth, 0);
+    CGFloat contentHeight = MAX(height - 68.0, 0);
+    for (UIView *subview in self.view.subviews) {
+        if (fabs(subview.frame.origin.x - menutablewidth) < 1.0 && subview.frame.origin.y >= 67.0) {
+            subview.frame = CGRectMake(menutablewidth, 68, contentWidth, contentHeight);
+            for (UIView *child in subview.subviews) {
+                if ([child isKindOfClass:[UITableView class]]) {
+                    child.frame = CGRectMake(30, 0, MAX(contentWidth - 60.0, 0), contentHeight);
+                }
+            }
+        } else if (fabs(subview.frame.origin.x - (menutablewidth - 1)) < 1.0 && subview.frame.size.width < 3.0) {
+            subview.frame = CGRectMake(menutablewidth - 1, 68, 1, contentHeight);
+        }
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutSettingsForCurrentSize];
 }
 
 -(void) updateheadercentertitle

@@ -18,7 +18,11 @@
 #import "SceneDelegate.h"
 
 @interface DTViewController ()
-
+{
+    BOOL sideWindowAdjusting;
+    NSMutableDictionary *edgeConstants;
+    CGFloat laidOutDTWidth;
+}
 @end
 
 @implementation DTViewController
@@ -44,6 +48,7 @@
     // Do any additional setup after loading the view.
     
     globalvariables=[GlobalVariables singleObj];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     df=[[NSDateFormatter alloc]init]; df.locale=[[NSLocale alloc]initWithLocaleIdentifier:@"en_US"];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
     
@@ -111,8 +116,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -187,6 +195,111 @@
     dtsearchbar.placeholder=[MyClass returntitlewithtitle:@"Search"];
     [self updateheadercentertitle];
     
+}
+
+- (CGFloat)visibleDTWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) return width;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat leftShift = MAX(CGRectGetMinX(frameInWindow) - CGRectGetMinX(window.bounds), 0);
+    CGFloat rightOverflow = MAX(CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(window.bounds), 0);
+    CGFloat menuSlide = MIN(leftShift, rightOverflow);
+    return MAX(width - (rightOverflow - menuSlide), 0);
+}
+
+- (CGFloat)visibleDTHeight
+{
+    CGFloat height = self.view.bounds.size.height;
+    UIWindow *window = self.view.window;
+    if (!window || height < 1) return height;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    return MAX(MIN(MIN(CGRectGetMaxY(frameInWindow), CGRectGetMaxY(window.bounds)) - CGRectGetMinY(frameInWindow), height), 0);
+}
+
+- (CGRect)visibleWindowFrame
+{
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) return CGRectZero;
+    if (!self.isViewLoaded || !self.view.window) return window.bounds;
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect visible = CGRectIntersection(frameInWindow, window.bounds);
+    if (CGRectIsNull(visible) || visible.size.width < 1 || visible.size.height < 1) return window.bounds;
+    return visible;
+}
+
+- (void)layoutDTForCurrentSize
+{
+    CGFloat width = [self visibleDTWidth];
+    CGFloat height = [self visibleDTHeight];
+    if (width < 1 || height < 1) return;
+    if (!edgeConstants) {
+        edgeConstants = [NSMutableDictionary dictionary];
+        for (NSLayoutConstraint *constraint in self.view.constraints) {
+            BOOL horizontal = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeTrailing || constraint.firstAttribute == NSLayoutAttributeTrailingMargin) && constraint.secondAttribute == NSLayoutAttributeTrailing;
+            BOOL vertical = constraint.firstItem == self.view && (constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin) && constraint.secondAttribute == NSLayoutAttributeBottom;
+            if (horizontal || vertical) {
+                edgeConstants[[NSValue valueWithNonretainedObject:constraint]] = @(constraint.constant);
+            }
+        }
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    CGFloat verticalOverflow = MAX(self.view.bounds.size.height - height, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        NSNumber *original = edgeConstants[[NSValue valueWithNonretainedObject:constraint]];
+        if (!original) continue;
+        BOOL vertical = constraint.firstAttribute == NSLayoutAttributeBottom || constraint.firstAttribute == NSLayoutAttributeBottomMargin;
+        CGFloat target = original.doubleValue + (vertical ? verticalOverflow : overflow);
+        if (fabs(constraint.constant - target) > 0.5) constraint.constant = target;
+    }
+    CGFloat titleWidth = MAX(width - 140.0, 0);
+    headertitleview.frame = CGRectMake(70, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+    UIView *statusHeader = title_Status.superview;
+    if (statusHeader && statusHeader != self.view) {
+        CGRect headerFrame = statusHeader.frame;
+        headerFrame.size.width = width;
+        statusHeader.frame = headerFrame;
+    }
+    if (title_Status) title_Status.frame = CGRectMake(width - 143, title_Status.frame.origin.y, 103, 21);
+    if (title_Attendance) title_Attendance.frame = CGRectMake(width - 303, title_Attendance.frame.origin.y, 127, 21);
+    if (reloadbutton) reloadbutton.frame = CGRectMake(width - 45, 34, 28, 28);
+    if (datebartable && fabs(width - laidOutDTWidth) > 0.5) {
+        laidOutDTWidth = width;
+        CGPoint offset = datebartable.contentOffset;
+        datebartable.transform = CGAffineTransformIdentity;
+        CGFloat barWidth = MAX(width - 101.0, 0);
+        datebartable.frame = CGRectMake(101, 69, barWidth, 40);
+        CGPoint center = datebartable.center;
+        datebartable.frame = CGRectMake(69, 101, 40, barWidth);
+        datebartable.transform = CGAffineTransformMakeRotation(-M_PI_2);
+        datebartable.center = center;
+        datebartable.contentOffset = offset;
+    }
+}
+
+- (void)pinOpenSideWindowToVisibleEdge
+{
+    if (sideWindowAdjusting || !sidewindowview || sidewindowview.hidden || sidewindowview.frame.size.width < 1.0) return;
+    CGRect visible = [self visibleWindowFrame];
+    if (visible.size.width < 1.0 || visible.size.height < 1.0) return;
+    CGFloat panelWidth = MIN(sidewindowview.frame.size.width, visible.size.width);
+    sidewindowview.frame = CGRectMake(CGRectGetMaxX(visible) - panelWidth, visible.origin.y, panelWidth, visible.size.height);
+    if (sidewindowviewclosebutton && !sidewindowviewclosebutton.hidden) sidewindowviewclosebutton.frame = visible;
+    for (UIView *child in sidewindowview.subviews) {
+        if ([child isKindOfClass:[UIActivityIndicatorView class]]) continue;
+        child.frame = sidewindowview.bounds;
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutDTForCurrentSize];
+    [self pinOpenSideWindowToVisibleEdge];
 }
 
 -(void) updateheadercentertitle
@@ -341,7 +454,7 @@
     globalvariables.lastviewcontroller=(NSString *)self;
     
     
-            if (sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+            if (sidewindowview.hidden || sidewindowview.frame.size.width < 1) {
     [self reloadPageWithFirstLoad:YES];
             }
 
@@ -974,7 +1087,7 @@
             dteditpopover.DTTableMode=@"View";
             dteditpopover.PopoverMode=@"PopoverDTFromDTView";
             
-            dteditpopover.view.frame=self->mainWindow.bounds;
+            dteditpopover.view.frame=self->sidewindowview.bounds;
             [self->sidewindowview addSubview:dteditpopover.view];
             [self addChildViewController:dteditpopover];
             [dteditpopover didMoveToParentViewController:self];
@@ -1040,7 +1153,7 @@
             ((StudentDetailsViewController *)[studentdetailsnavcontroller topViewController]).scactiveoption_enrollment.hidden=YES;
             [((StudentDetailsViewController *)[studentdetailsnavcontroller topViewController]) drawpointerwithoption:@"closed" imageview:((StudentDetailsViewController *)[studentdetailsnavcontroller topViewController]).dayselectionarrow];
             
-            studentdetailsnavcontroller.view.frame=CGRectMake(0, 0, self.view.frame.size.width-240, self.view.frame.size.height);
+            studentdetailsnavcontroller.view.frame=sidewindowview.bounds;
             [self->sidewindowview addSubview:studentdetailsnavcontroller.view];
             [self addChildViewController:studentdetailsnavcontroller];
             [studentdetailsnavcontroller didMoveToParentViewController:self];
@@ -1069,7 +1182,7 @@
                 return;
             }
             
-            leaddetailsnavcontroller.view.frame=CGRectMake(0, 0, self.view.frame.size.width-240, self.view.frame.size.height);
+            leaddetailsnavcontroller.view.frame=sidewindowview.bounds;
             [self->sidewindowview addSubview:leaddetailsnavcontroller.view];
             [self addChildViewController:leaddetailsnavcontroller];
             [leaddetailsnavcontroller didMoveToParentViewController:self];
@@ -1117,7 +1230,7 @@
         DTPopover.DTTableMode=@"Add";
         DTPopover.PopoverMode=@"PopoverDTFromDTView";
         
-        DTPopover.view.frame=self->mainWindow.bounds;
+        DTPopover.view.frame=self->sidewindowview.bounds;
         [self->sidewindowview addSubview:DTPopover.view];
         [self addChildViewController:DTPopover];
         [DTPopover didMoveToParentViewController:self];
@@ -1754,25 +1867,49 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
+    CGRect visible = [self visibleWindowFrame];
+    CGFloat edge = CGRectGetMaxX(visible);
+    CGFloat panelY = visible.origin.y;
+    CGFloat panelHeight = visible.size.height;
+    if (edge < 1) {
+        edge = mainWindow.bounds.size.width;
+        panelY = 0;
+        panelHeight = mainWindow.bounds.size.height;
+    }
+    CGFloat panelWidth = width > 0 ? MIN(width, visible.size.width > 1 ? visible.size.width : edge) : 0;
+    BOOL alreadyClosed = ailoadindicator.hidden && sidewindowview.frame.size.width < 1 && fabs(sidewindowview.frame.origin.x - edge) < 1;
+    if (alreadyClosed) {
         return;
     }
-    
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (fabs(sidewindowview.frame.origin.x - (edge - panelWidth)) < 1 && fabs(sidewindowview.frame.size.width - panelWidth) < 1 && fabs(sidewindowview.frame.size.height - panelHeight) < 1) {
         return;
     }
-    
-    if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
+    if (width>0 && sidewindowview.frame.size.width < 1) {
         [MyClass playsoundwithoption:@"open"];
     }
-    
+    if (visible.size.width > 1) {
+        sidewindowviewclosebutton.frame = visible;
+    }
+    sideWindowAdjusting = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
+        sidewindowview.hidden = width<=0;
+        sidewindowview.frame=CGRectMake(edge-panelWidth, panelY, panelWidth, panelHeight);
+        for (UIView *panelChild in sidewindowview.subviews) {
+            if ([panelChild isKindOfClass:[UIActivityIndicatorView class]]) {
+                continue;
+            }
+            panelChild.frame = sidewindowview.bounds;
+        }
+        if (width==0 && sidewindowview.frame.origin.x< edge) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAdjusting = NO;
+        if (width > 0) {
+            [self pinOpenSideWindowToVisibleEdge];
+        }
         if (width==0) {
+            sidewindowview.hidden=YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];

@@ -20,10 +20,12 @@ static void *SceneWindowBoundsContext = &SceneWindowBoundsContext;
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
     UIWindowScene *windowScene = (UIWindowScene *)scene;
     
-    // Lock window size restrictions to prevent resizing in Stage Manager / windowed modes
+    // Allow Stage Manager to shrink the scene. Locking both limits to the full
+    // screen keeps layout at the full size while the system clips the window,
+    // which cuts off the trailing edge.
     if (@available(iOS 13.0, *)) {
         CGSize screenSize = windowScene.coordinateSpace.bounds.size;
-        windowScene.sizeRestrictions.minimumSize = screenSize;
+        windowScene.sizeRestrictions.minimumSize = CGSizeMake(320, 320);
         windowScene.sizeRestrictions.maximumSize = screenSize;
     }
     
@@ -75,16 +77,11 @@ static void *SceneWindowBoundsContext = &SceneWindowBoundsContext;
         if (subview.tag != -200 || [subview isKindOfClass:[UIButton class]]) {
             continue;
         }
-        subview.autoresizingMask = UIViewAutoresizingNone;
-        CGFloat origin = subview.frame.origin.x;
+        subview.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
         CGFloat panelSpan = subview.frame.size.width;
-        CGFloat maxX = origin + panelSpan;
-        CGRect intersection = CGRectIntersection(subview.frame, CGRectMake(0, 0, windowWidth, windowHeight));
-        CGFloat visibleWidth = CGRectIsNull(intersection) ? 0 : intersection.size.width;
-        // A parked panel is wider than the part of it that is actually on screen,
-        // so resizing reveals a gray strip. An open panel is fully on screen.
-        BOOL sliver = panelSpan > 1.0 && visibleWidth > 0 && visibleWidth < panelSpan - 24.0;
-        BOOL openPanel = !subview.hidden && panelSpan > 1.0 && !sliver && origin < windowWidth - 1.0 && maxX <= windowWidth + 1.0;
+        // A closed panel is hidden. An open panel stays on the trailing edge
+        // of the resized window instead of being left past the visible edge.
+        BOOL openPanel = !subview.hidden && panelSpan > 1.0;
         if (!openPanel) {
             subview.hidden = YES;
             subview.frame = CGRectMake(windowWidth, 0, 0, windowHeight);

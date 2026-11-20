@@ -9575,7 +9575,9 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-    if (!mainWindow) {
+    if (self.view.window) {
+        mainWindow = self.view.window;
+    } else if (!mainWindow) {
         mainWindow = [self detailsSceneWindow];
     }
     if (!mainWindow) {

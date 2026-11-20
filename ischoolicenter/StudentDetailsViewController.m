@@ -28,7 +28,11 @@
 @import  BSImagePicker;
 
 @interface StudentDetailsViewController ()<myDTAddEditViewControllerDelegate>
-
+@property (nonatomic, strong) UIView *viewHistoryCard;
+@property (nonatomic, assign) BOOL historyButtonFollowsCorner;
+@property (nonatomic, assign) CGFloat sideWindowRequestedWidth;
+@property (nonatomic, assign) BOOL sideWindowOpen;
+@property (nonatomic, assign) BOOL sideWindowAnimating;
 @end
 
 #define photosize 175
@@ -93,12 +97,13 @@
     DetailsViewClass=[[ClassRecord alloc]init];
     DetailsViewDTObject=[[DTRecord alloc]init];
     
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
-//    selfViewWidth = screenSize.width-240;
-    selfViewWidth = self.view.bounds.size.width-240;
+    selfViewWidth = self.view.bounds.size.width;
     messagecontentwidth=selfViewWidth-40;
-    maxphotoperline=(self.view.frame.size.width-250-40)/photosize;
+    maxphotoperline=(self.view.bounds.size.width-40)/photosize;
+    if (maxphotoperline < 1) {
+        maxphotoperline = 1;
+    }
+    self.historyButtonFollowsCorner = YES;
 
 //    [self.navigationController.navigationBar setFrame:CGRectMake(0, 0, selfViewWidth,80.0)];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
@@ -370,8 +375,11 @@
     [mainWindow addSubview:sidewindowviewclosebutton];
 
 
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
@@ -582,6 +590,202 @@
 //    [student_editButton setTitle:[MyClass returntitlewithtitle:@"Edit"] forState:UIControlStateNormal];
     [student_goToLeadButton setTitle:[MyClass returntitlewithtitle:@"Go to Lead Profile"] forState:UIControlStateNormal];
     [remainingclassbutton setTitle:[MyClass returntitlewithtitle:@"Class Summary"] forState:UIControlStateNormal];
+}
+
+-(CGFloat) visibleEdgeOverflowForMax:(CGFloat)viewMax safeMax:(CGFloat)safeMax fallback:(CGFloat)fallback
+{
+    UIWindow *window = self.view.window;
+    if (!window) {
+        return fallback;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect safeFrame = window.safeAreaLayoutGuide.layoutFrame;
+    if (CGRectIsEmpty(safeFrame) || safeFrame.size.width < 1 || safeFrame.size.height < 1) {
+        return fallback;
+    }
+    CGFloat viewEdge = (viewMax == 0) ? CGRectGetMaxX(frameInWindow) : CGRectGetMaxY(frameInWindow);
+    CGFloat safeEdge = (viewMax == 0) ? CGRectGetMaxX(safeFrame) : CGRectGetMaxY(safeFrame);
+    return MAX(0, viewEdge - safeEdge);
+}
+
+-(void) layoutStudentDetailsForCurrentSize
+{
+    CGFloat width = self.view.bounds.size.width;
+    CGFloat height = self.view.bounds.size.height;
+    if (width < 1 || height < 1) {
+        return;
+    }
+    selfViewWidth = width;
+    messagecontentwidth = MAX(width - 40, 0);
+    maxphotoperline = (width - 40) / photosize;
+    if (maxphotoperline < 1) {
+        maxphotoperline = 1;
+    }
+    
+    CGFloat trailing = [self visibleEdgeOverflowForMax:0 safeMax:0 fallback:self.view.safeAreaInsets.right];
+    CGFloat bottomInset = 0;
+    if (self.view.window) {
+        CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+        bottomInset = MAX(0, CGRectGetMaxY(frameInWindow) - CGRectGetMaxY(self.view.window.bounds));
+    }
+    if (masterViewTrailingConstraint && fabs(masterViewTrailingConstraint.constant - trailing) > 0.5) {
+        masterViewTrailingConstraint.constant = trailing;
+    }
+    if (masterViewBottomConstraint && fabs(masterViewBottomConstraint.constant - bottomInset) > 0.5) {
+        masterViewBottomConstraint.constant = bottomInset;
+    }
+    CGFloat top = MAX(self.view.safeAreaInsets.top, 0);
+    
+    if (headertitleview) {
+        CGFloat titleWidth = MAX(width - trailing - 300, 0);
+        headertitleview.frame = CGRectMake(150, 0, titleWidth, 68);
+        headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+        switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+        [self updateheadercentertitle];
+    }
+    
+    if (ViewHistoryTableMasterView) {
+        CGFloat masterTop = MAX(top, 64);
+        ViewHistoryTableMasterView.frame = CGRectMake(0, masterTop, width, MAX(height - masterTop, 0));
+        for (UIView *subview in ViewHistoryTableMasterView.subviews) {
+            if (subview != self.viewHistoryCard && [subview isKindOfClass:[UIButton class]]) {
+                subview.frame = ViewHistoryTableMasterView.bounds;
+            }
+        }
+        if (self.viewHistoryCard) {
+            CGFloat cardWidth = MIN(220, MAX(width - trailing - 28, 0));
+            CGFloat cardX = width - trailing - cardWidth - 14;
+            if (cardX < 8) {
+                cardX = 8;
+            }
+            CGFloat cardHeight = ViewHistoryTableMasterView.bounds.size.height - 20 - bottomInset - 8;
+            if (cardHeight < 80) {
+                cardHeight = 80;
+            }
+            self.viewHistoryCard.frame = CGRectMake(cardX, 20, cardWidth, cardHeight);
+            for (UIView *subview in self.viewHistoryCard.subviews) {
+                if ([subview isKindOfClass:[UIButton class]]) {
+                    subview.frame = CGRectMake(cardWidth - 40, 0, 35, 35);
+                }
+            }
+            ViewHistoryTable.frame = CGRectMake(0, 35, cardWidth, MAX(cardHeight - 35, 0));
+        }
+    }
+    
+    if (viewhistorybutton) {
+        CGFloat buttonSize = 45;
+        if (self.historyButtonFollowsCorner) {
+            viewhistorybutton.frame = CGRectMake(width - trailing - buttonSize - 20, height - bottomInset - buttonSize - 20, buttonSize, buttonSize);
+        } else {
+            CGRect frame = viewhistorybutton.frame;
+            frame.origin.x = MIN(MAX(frame.origin.x, 8), MAX(width - trailing - buttonSize, 8));
+            frame.origin.y = MIN(MAX(frame.origin.y, top + 8), MAX(height - bottomInset - buttonSize, top + 8));
+            viewhistorybutton.frame = frame;
+        }
+    }
+    
+    [self layoutSideWindowForCurrentSize];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutStudentDetailsForCurrentSize];
+}
+
+-(UIWindow *) detailsSceneWindow
+{
+    if (self.view.window) {
+        return self.view.window;
+    }
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState != UISceneActivationStateForegroundActive && windowScene.activationState != UISceneActivationStateForegroundInactive) {
+            continue;
+        }
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow) {
+                return window;
+            }
+        }
+        if (windowScene.windows.firstObject) {
+            return windowScene.windows.firstObject;
+        }
+    }
+    SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
+    return sceneDelegate.window;
+}
+
+-(void) layoutSideWindowForCurrentSize
+{
+    if (!sidewindowview || self.sideWindowAnimating) {
+        return;
+    }
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    if (mainWindow != window) {
+        mainWindow = window;
+        mainviewcontroller = (MainViewController *)[window rootViewController];
+    }
+    if (sidewindowviewclosebutton.superview != window) {
+        [window addSubview:sidewindowviewclosebutton];
+    }
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    sidewindowviewclosebutton.frame = window.bounds;
+    
+    CGFloat windowWidth = window.bounds.size.width;
+    CGFloat windowHeight = window.bounds.size.height;
+    if (!self.sideWindowOpen) {
+        sidewindowview.hidden = YES;
+        sidewindowview.frame = CGRectMake(windowWidth, 0, 0, windowHeight);
+        sidewindowviewclosebutton.hidden = YES;
+        return;
+    }
+    sidewindowview.hidden = NO;
+    // Keep the enrolment sheet above its dimmer only. Do not bring it above a
+    // later panel such as the student photo grid.
+    NSUInteger panelIndex = [window.subviews indexOfObject:sidewindowview];
+    NSUInteger dimmerIndex = [window.subviews indexOfObject:sidewindowviewclosebutton];
+    if (panelIndex != NSNotFound && dimmerIndex != NSNotFound && panelIndex < dimmerIndex) {
+        [window insertSubview:sidewindowview aboveSubview:sidewindowviewclosebutton];
+    }
+    CGFloat requestedWidth = self.sideWindowRequestedWidth > 0 ? self.sideWindowRequestedWidth : 320.0;
+    CGFloat panelWidth = MIN(requestedWidth, windowWidth);
+    sidewindowview.frame = CGRectMake(windowWidth - panelWidth, 0, panelWidth, windowHeight);
+    for (UIView *subview in sidewindowview.subviews) {
+        if (subview == ailoadindicator) {
+            continue;
+        }
+        subview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        subview.frame = sidewindowview.bounds;
+    }
+    ailoadindicator.center = CGPointMake(sidewindowview.bounds.size.width / 2.0 - 7.5, sidewindowview.bounds.size.height / 2.0 - 7.5);
+}
+
+-(CGFloat) clampedSideWindowWidth:(CGFloat)width
+{
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    if (width <= 0 || !mainWindow || mainWindow.bounds.size.width <= 0) {
+        return 0;
+    }
+    return MIN(width, mainWindow.bounds.size.width);
+}
+
+-(void) placeViewInSideWindow:(UIView *)view
+{
+    view.translatesAutoresizingMaskIntoConstraints = YES;
+    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    view.frame = sidewindowview.bounds;
+    view.clipsToBounds = YES;
 }
 
 -(void) updateheadercentertitle
@@ -836,7 +1040,7 @@
                     makeuppopover.PopoverOption=@"FromClassDetails";
                     //classpopover.PopoverStudent=DetailsViewStudent;
                     
-                    makeuppopover.view.frame=self->mainWindow.bounds;
+                    [self placeViewInSideWindow:makeuppopover.view];
                     [self->sidewindowview addSubview:makeuppopover.view];
                     [self addChildViewController:makeuppopover];
                     [makeuppopover didMoveToParentViewController:self];
@@ -2821,7 +3025,7 @@
             return;
         }
         
-        remarksuppopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:remarksuppopover.view];
         [self->sidewindowview addSubview:remarksuppopover.view];
         [self addChildViewController:remarksuppopover];
         [remarksuppopover didMoveToParentViewController:self];
@@ -2951,7 +3155,7 @@
                     return;
                 }
                 
-                dtpopover.view.frame=self->mainWindow.bounds;
+                [self placeViewInSideWindow:dtpopover.view];
                 [self->sidewindowview addSubview:dtpopover.view];
                 [self addChildViewController:dtpopover];
                 [dtpopover didMoveToParentViewController:self];
@@ -2986,7 +3190,7 @@
 
                 }
                 
-                classpopover.view.frame=self->mainWindow.bounds;
+                [self placeViewInSideWindow:classpopover.view];
                 [self->sidewindowview addSubview:classpopover.view];
                 [self addChildViewController:classpopover];
                 [classpopover didMoveToParentViewController:self];
@@ -3111,7 +3315,7 @@
                 //[enrollmentwindowview addSubview:enrollmentpopover.view];
                 
                 
-                enrollmentpopover.view.frame=self->mainWindow.bounds;
+                [self placeViewInSideWindow:enrollmentpopover.view];
                 [self->sidewindowview addSubview:enrollmentpopover.view];
                 [self addChildViewController:enrollmentpopover];
                 [enrollmentpopover didMoveToParentViewController:self];
@@ -3246,7 +3450,7 @@
                 salespopover.PopoverStudent=DetailsViewStudent;
                 salespopover.SalesTableMode=@"View";
                 
-                salespopover.view.frame=self->mainWindow.bounds;
+                [self placeViewInSideWindow:salespopover.view];
                 [self->sidewindowview addSubview:salespopover.view];
                 [self addChildViewController:salespopover];
                 [salespopover didMoveToParentViewController:self];
@@ -3331,7 +3535,7 @@
                 [MyClass showconnectionlostdialogbox];
             }
             
-            calllogpopover.view.frame=self->mainWindow.bounds;
+            [self placeViewInSideWindow:calllogpopover.view];
             [self->sidewindowview addSubview:calllogpopover.view];
             [self addChildViewController:calllogpopover];
             [calllogpopover didMoveToParentViewController:self];
@@ -3429,7 +3633,7 @@
             couponpopover.CouponTableMode=0;
             couponpopover.CouponRecordObject=[filteredDetailsViewCouponArray objectAtIndex:indexPath.row];
             
-            couponpopover.view.frame=self->mainWindow.bounds;
+            [self placeViewInSideWindow:couponpopover.view];
             [self->sidewindowview addSubview:couponpopover.view];
             [self addChildViewController:couponpopover];
             [couponpopover didMoveToParentViewController:self];
@@ -3475,7 +3679,7 @@
         makeuppopover.PopoverOption=@"FromClassDetails";
         //classpopover.PopoverStudent=DetailsViewStudent;
         
-        makeuppopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:makeuppopover.view];
         [self->sidewindowview addSubview:makeuppopover.view];
         [self addChildViewController:makeuppopover];
         [makeuppopover didMoveToParentViewController:self];
@@ -5025,7 +5229,7 @@
         
         enrollmentpopover.AllClassRemarksArray=allclassremarksArray;
         
-        enrollmentpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:enrollmentpopover.view];
         [self->sidewindowview addSubview:enrollmentpopover.view];
         [self addChildViewController:enrollmentpopover];
         [enrollmentpopover didMoveToParentViewController:self];
@@ -5051,7 +5255,7 @@
         //salespopover.SalesObject.studentkey=DetailsViewStudent.studentkey;
         salespopover.PopoverStudent=DetailsViewStudent;
         
-        salespopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:salespopover.view];
         [self->sidewindowview addSubview:salespopover.view];
         [self addChildViewController:salespopover];
         [salespopover didMoveToParentViewController:self];
@@ -5073,7 +5277,7 @@
         couponpopover.CouponTableMode=1;
         couponpopover.studentkeys=[[NSMutableArray alloc]initWithObjects:DetailsViewStudent.studentkey,nil];
         
-        couponpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:couponpopover.view];
         [self->sidewindowview addSubview:couponpopover.view];
         [self addChildViewController:couponpopover];
         [couponpopover didMoveToParentViewController:self];
@@ -5097,7 +5301,7 @@
         couponpopover.studentkeys=studentkeys;
 //        bulkcouponstudentkeys=studentkeys;
         
-        couponpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:couponpopover.view];
         [self->sidewindowview addSubview:couponpopover.view];
         [self addChildViewController:couponpopover];
         [couponpopover didMoveToParentViewController:self];
@@ -5121,7 +5325,7 @@
         pointpopover.studentkeys=studentkeys;
 //        bulkcouponstudentkeys=studentkeys;
         
-        pointpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:pointpopover.view];
         [self->sidewindowview addSubview:pointpopover.view];
         [self addChildViewController:pointpopover];
         [pointpopover didMoveToParentViewController:self];
@@ -5145,7 +5349,7 @@
         pointpopover.PointRecordObject=pointrecord;
 //        bulkcouponstudentkeys=studentkeys;
         
-        pointpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:pointpopover.view];
         [self->sidewindowview addSubview:pointpopover.view];
         [self addChildViewController:pointpopover];
         [pointpopover didMoveToParentViewController:self];
@@ -5936,7 +6140,7 @@
         if ([self returnallclassremarkswithstudentkey:DetailsViewStudent.studentkey]) {
             enrollmentpopover.AllClassRemarksArray=allclassremarksArray;
             
-            enrollmentpopover.view.frame=self->mainWindow.bounds;
+            [self placeViewInSideWindow:enrollmentpopover.view];
             [self->sidewindowview addSubview:enrollmentpopover.view];
             [self addChildViewController:enrollmentpopover];
             [enrollmentpopover didMoveToParentViewController:self];
@@ -5981,7 +6185,7 @@
 //        if ([self returnallclassremarkswithstudentkey:DetailsViewStudent.studentkey]) {
 //            enrollmentpopover.AllClassRemarksArray=allclassremarksArray;
             
-            enrollmentpopover.view.frame=self->mainWindow.bounds;
+            [self placeViewInSideWindow:enrollmentpopover.view];
             [self->sidewindowview addSubview:enrollmentpopover.view];
             [self addChildViewController:enrollmentpopover];
             [enrollmentpopover didMoveToParentViewController:self];
@@ -6745,7 +6949,7 @@
         globalvariables.documentfolder.globalvariables.documentfolder.defaultcheckedsalesreceiptpaymentkeys=globalvariables.documentfolder.defaultcheckedsalesreceiptpaymentkeys;*/
         documentfolderpopover.menubutton=2;
         
-        documentfolderpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:documentfolderpopover.view];
         [self->sidewindowview addSubview:documentfolderpopover.view];
         [self addChildViewController:documentfolderpopover];
         documentfolderpopover.view.clipsToBounds=YES;
@@ -6807,7 +7011,7 @@
             [MyClass showconnectionlostdialogbox];
         }
         
-        calllogpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:calllogpopover.view];
         [self->sidewindowview addSubview:calllogpopover.view];
         [self addChildViewController:calllogpopover];
         [calllogpopover didMoveToParentViewController:self];
@@ -7058,7 +7262,7 @@
         DTPopover.PopoverMode=@"PopoverDTFromStudentView";
         DTPopover.CallingKey=DetailsViewStudent.studentkey;
         
-        DTPopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:DTPopover.view];
         [self->sidewindowview addSubview:DTPopover.view];
         [self addChildViewController:DTPopover];
         [DTPopover didMoveToParentViewController:self];
@@ -7197,6 +7401,7 @@
     }
     
     button.center = CGPointMake(x,y);
+    self.historyButtonFollowsCorner = NO;
     
     [recognizer setTranslation:CGPointZero inView:button];
 }
@@ -7251,6 +7456,7 @@
     [ViewHistoryTableMasterView addSubview:closebutton];
     
     UIView *tableview=[[UIView alloc]initWithFrame:CGRectMake(selfViewWidth-234, 20, 220, self.view.bounds.size.height-108)];
+    self.viewHistoryCard=tableview;
     tableview.backgroundColor=[UIColor colorWithRed:210.0/255.0 green:210.0/255.0 blue:210.0/255.0 alpha:0.95];
     tableview.layer.cornerRadius=5;
     tableview.layer.masksToBounds=YES;
@@ -7271,7 +7477,7 @@
     ViewHistoryTable=[[UITableView alloc]initWithFrame:CGRectMake(0, 35, 220, self.view.frame.size.height-152) style:UITableViewStylePlain];
     ViewHistoryTable.separatorStyle = UITableViewCellSeparatorStyleNone;
     ViewHistoryTable.backgroundColor=[UIColor clearColor];
-    ViewHistoryTable.scrollEnabled=FALSE;
+    ViewHistoryTable.scrollEnabled=YES;
     ViewHistoryTable.delegate=self;
     ViewHistoryTable.dataSource=self;
     [tableview addSubview:ViewHistoryTable];
@@ -9369,13 +9575,17 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
-
-    
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
 
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - mainWindow.bounds.size.height) < 0.5) {
         return;
     }
 
@@ -9383,13 +9593,24 @@
         [MyClass playsoundwithoption:@"open"];
     }
 
+    if (width > 0) {
+        self.sideWindowRequestedWidth = width;
+    }
+    self.sideWindowOpen = width > 0;
+    self.sideWindowAnimating = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
-//        if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
-//            [MyClass playsoundwithoption:@"close"];
-//        }
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *subview in sidewindowview.subviews) {
+            if (subview == ailoadindicator) {
+                continue;
+            }
+            subview.frame = sidewindowview.bounds;
+        }
     } completion:^(BOOL finished){
+        self.sideWindowAnimating = NO;
         if (width==0) {
+            self.sideWindowOpen = NO;
+            sidewindowview.hidden = YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -9404,6 +9625,7 @@
                 }
             }
         }
+        [self layoutSideWindowForCurrentSize];
     }];
     sidewindowviewclosebutton.hidden=width==0?YES:NO;
     
@@ -9411,7 +9633,8 @@
 
 -(void) closesidewindow
 {
-    
+    self.sideWindowOpen = NO;
+    self.sideWindowRequestedWidth = 0;
     [self adjustpresentingviewwidthwithwidth:0];
     
     if (lastviewindex==2) {
@@ -9437,12 +9660,17 @@
 
 -(void) startsidewindowanimationwithwidth:(float)width
 {
-
-    
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    self.sideWindowRequestedWidth = width;
+    self.sideWindowOpen = width > 0;
+    sidewindowview.hidden = width <= 0;
+    CGFloat panelWidth = [self clampedSideWindowWidth:width];
     ailoadindicator.hidden=NO;
-    ailoadindicator.center = CGPointMake(width/2-7.5,mainWindow.frame.size.height/2-7.5);
+    ailoadindicator.center = CGPointMake(panelWidth/2-7.5,mainWindow.bounds.size.height/2-7.5);
     [ailoadindicator startAnimating];
-    [self adjustpresentingviewwidthwithwidth:width];
+    [self adjustpresentingviewwidthwithwidth:panelWidth];
 }
 
 -(BOOL) isDifferentLevelWithLaterEnrollmentWithStartDate:(NSString *)startdate enrollmentkey:(NSString *)enrollmentkey subject:(NSString *)subject levelmain:(NSString *)levelmain levelctm:(NSString *)levelctm studentkey:(NSString *)studentkey
@@ -9552,7 +9780,7 @@
         staffpopover.StaffTableMode=@"View";
         staffpopover.delegate=self;
         
-        staffpopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:staffpopover.view];
         [self->sidewindowview addSubview:staffpopover.view];
         [self addChildViewController:staffpopover];
         [staffpopover didMoveToParentViewController:self];
@@ -11820,9 +12048,7 @@ dictionary=[MyClass addchecksumparameterwithdictionary:dictionary];
         pickerviewcontroller.itemsarray=NewContactArray;
         pickerviewcontroller.multipleSelection=YES;
 
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
+        [self placeViewInSideWindow:pickerviewcontroller.view];
         [self->sidewindowview addSubview:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];
@@ -11923,10 +12149,7 @@ dictionary=[MyClass addchecksumparameterwithdictionary:dictionary];
             pickerviewcontroller.preferredContentSize=CGSizeMake(320, 40*readstatusdetailsarray.count);
             pickerviewcontroller.itemsarray=readstatusdetailsarray;
             
-            //pickerviewcontroller.view.frame=self->mainWindow.bounds;
-            CGRect frame=mainWindow.bounds;
-            frame.size.width=320;
-            pickerviewcontroller.view.frame=frame;
+            [self placeViewInSideWindow:pickerviewcontroller.view];
             [self->sidewindowview addSubview:pickerviewcontroller.view];
             [self addChildViewController:pickerviewcontroller];
             [pickerviewcontroller didMoveToParentViewController:self];
@@ -12477,7 +12700,7 @@ dictionary=[MyClass addchecksumparameterwithdictionary:dictionary];
             messagepopover.delegate=self;
 
     
-            messagepopover.view.frame=self->mainWindow.bounds;
+            [self placeViewInSideWindow:messagepopover.view];
             [self->sidewindowview addSubview:messagepopover.view];
             [self addChildViewController:messagepopover];
             [messagepopover didMoveToParentViewController:self];

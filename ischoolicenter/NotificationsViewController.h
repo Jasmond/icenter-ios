@@ -109,6 +109,8 @@
     UIButton *reloadbutton;
     
     __weak IBOutlet UIView *masterview;
+    __weak IBOutlet UIView *headerbar;
+    __weak IBOutlet UIButton *datepreviousbutton;
     __weak IBOutlet UIView *filterview;
     __weak IBOutlet UIImageView *backgroundcenterimage;
     
@@ -121,6 +123,18 @@
 
     __weak IBOutlet NSLayoutConstraint *masterviewleadingconstraint;
     __weak IBOutlet NSLayoutConstraint *masterviewtrailingconstrain;
+    __weak IBOutlet NSLayoutConstraint *calendarPanelHeaderConstraint;
+    __weak IBOutlet NSLayoutConstraint *calendarPanelBackgroundConstraint;
+    __weak IBOutlet NSLayoutConstraint *calendarPanelStackConstraint;
+    __weak IBOutlet NSLayoutConstraint *stackBottomConstraint;
+    NSLayoutConstraint *headerCenterNameWidth;
+    NSLayoutConstraint *headerCenterNameCenterX;
+    NSLayoutConstraint *masterviewButtonTrailing;
+    NSLayoutConstraint *headerVisibleTrailing;
+    NSLayoutConstraint *backgroundVisibleTrailing;
+    NSLayoutConstraint *stackVisibleTrailing;
+    CGFloat appliedTrailingInset;
+    CGFloat appliedBottomInset;
     
     __weak IBOutlet UIScrollView *slideScrollView;
     __weak IBOutlet UIStackView *slideStack;
@@ -161,7 +175,11 @@
     UILabel *documentfoldercountlabel;
     DocumentFolderPopoverViewController *documentfolderpopover;
     
-    CGFloat lastAppWidth;
+    BOOL calendarOpen;
+    BOOL sideWindowOpen;
+    BOOL sideWindowAnimating;
+    CGFloat sideWindowRequestedWidth;
+    CGFloat lastNotificationsTableWidth;
 }
 @property (nonatomic,strong) UIImagePickerController *imagepicker;
 @property (nonatomic,strong) UIPopoverPresentationController *mypopovercontroller;

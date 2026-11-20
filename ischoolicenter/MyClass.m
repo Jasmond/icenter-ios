@@ -12811,7 +12811,18 @@
         
         SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
         UIWindow *mainWindow = sceneDelegate.window;
-        [mainWindow bringSubviewToFront:globalvariables.loadingindicatorview];
+        UIView *overlay = globalvariables.loadingindicatorview;
+        overlay.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        if (overlay.superview != mainWindow) {
+            [mainWindow addSubview:overlay];
+        }
+        overlay.frame = mainWindow.bounds;
+        UIView *centerview = [overlay viewWithTag:809];
+        if (centerview) {
+            centerview.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+            centerview.center = CGPointMake(CGRectGetMidX(overlay.bounds), CGRectGetMidY(overlay.bounds));
+        }
+        [mainWindow bringSubviewToFront:overlay];
         activityImageView.animationImages=[MyClass returnLoadingIndicatorAnimatedImageWithBaseColor:color];
         activityImageView.animationDuration=2;
         [activityImageView startAnimating];

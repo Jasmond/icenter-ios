@@ -15,7 +15,7 @@
 #import "MyTableViewCell.h"
 
 @interface LeadInformationViewController ()
-
+@property (nonatomic, strong) UIView *listSeparator;
 @end
 
 @implementation LeadInformationViewController
@@ -37,14 +37,15 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
     
     topleftview.backgroundColor = [UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:0.8];
-    UIView *separator=[[UIView alloc]initWithFrame:CGRectMake(240, 68, .5, self.view.bounds.size.height-68)];
-    separator.backgroundColor=[UIColor lightGrayColor];
-    [self.view addSubview:separator];
+    self.listSeparator=[[UIView alloc]initWithFrame:CGRectMake(240, 68, .5, self.view.bounds.size.height-68)];
+    self.listSeparator.backgroundColor=[UIColor lightGrayColor];
+    [self.view addSubview:self.listSeparator];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(checktoreloadapp) name:UIApplicationWillEnterForegroundNotification object:nil];
     
@@ -83,6 +84,8 @@
     leadlisttable.hidden=YES;
     
     leadsearchbar.placeholder=[MyClass returntitlewithtitle:@"Search"];
+    leadsearchbar.insetsLayoutMarginsFromSafeArea = NO;
+    leadsearchbar.superview.insetsLayoutMarginsFromSafeArea = NO;
     
     runviewdidappear=TRUE;
     
@@ -99,6 +102,49 @@
     [self updateCategoryCount];
     //[self.tableView reloadData];
     [tablerefresh endRefreshing];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    if (LeadDetailsContainerView.bounds.size.width > 1 && LeadDetailsContainerView.bounds.size.height > 1) {
+        destLeadDetailsViewController.preferredContentSize = LeadDetailsContainerView.bounds.size;
+    }
+    self.listSeparator.frame = CGRectMake(240, 68, 0.5, MAX(self.view.bounds.size.height - 68, 0));
+    [self alignLeadSearchField];
+}
+
+// The search field keeps its own placeholder and icon. A window that is not
+// full screen adds a leading safe-area inset inside the bar; pull the field
+// back to the bar edge instead of shifting the text out of the field.
+- (void)alignLeadSearchField
+{
+    UISearchBar *searchBar = leadsearchbar;
+    if (!searchBar || searchBar.bounds.size.width < 1) {
+        return;
+    }
+    searchBar.searchFieldBackgroundPositionAdjustment = UIOffsetZero;
+    searchBar.searchTextPositionAdjustment = UIOffsetZero;
+    [searchBar setPositionAdjustment:UIOffsetZero forSearchBarIcon:UISearchBarIconSearch];
+
+    UITextField *field = searchBar.searchTextField;
+    UIView *container = field.superview;
+    if (container && container != searchBar) {
+        CGFloat containerLeading = CGRectGetMinX([container convertRect:container.bounds toView:searchBar]);
+        if (containerLeading > 1) {
+            CGRect containerFrame = container.frame;
+            containerFrame.origin.x -= containerLeading;
+            containerFrame.size.width += containerLeading;
+            container.frame = containerFrame;
+        }
+    }
+    CGFloat fieldLeading = CGRectGetMinX([field convertRect:field.bounds toView:searchBar]);
+    if (fieldLeading > 1) {
+        CGRect fieldFrame = field.frame;
+        fieldFrame.origin.x -= fieldLeading;
+        fieldFrame.size.width += fieldLeading;
+        field.frame = fieldFrame;
+    }
 }
 
 -(void) showButton

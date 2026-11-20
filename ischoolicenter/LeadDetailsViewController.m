@@ -28,7 +28,11 @@
 @import  BSImagePicker;
 
 @interface LeadDetailsViewController ()
-
+@property (nonatomic, strong) UIView *viewHistoryCard;
+@property (nonatomic, assign) BOOL historyButtonFollowsCorner;
+@property (nonatomic, assign) CGFloat sideWindowRequestedWidth;
+@property (nonatomic, assign) BOOL sideWindowOpen;
+@property (nonatomic, assign) BOOL sideWindowAnimating;
 @end
 
 #define photosize 175
@@ -74,16 +78,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
     
-    
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
-//    selfViewWidth = screenSize.width-240;
-    selfViewWidth = self.view.bounds.size.width-240;
+    selfViewWidth = self.view.bounds.size.width;
     messagecontentwidth=selfViewWidth-40;
-    maxphotoperline=(self.view.frame.size.width-240-40)/photosize;
+    maxphotoperline=(self.view.bounds.size.width-40)/photosize;
+    if (maxphotoperline < 1) {
+        maxphotoperline = 1;
+    }
+    self.historyButtonFollowsCorner = YES;
     
     [self loadgeneral];
     //[self loadtitle];
@@ -179,8 +184,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
+    sidewindowview.clipsToBounds=YES;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -1370,8 +1378,8 @@
                 return;
             }
             
-            dtpopover.view.frame=self->mainWindow.bounds;
             [self->sidewindowview addSubview:dtpopover.view];
+            [self placeViewInSideWindow:dtpopover.view];
             [self addChildViewController:dtpopover];
             [dtpopover didMoveToParentViewController:self];
             [self->ailoadindicator stopAnimating];
@@ -1428,8 +1436,8 @@
 
             //}
             
-            calllogpopover.view.frame=self->mainWindow.bounds;
             [self->sidewindowview addSubview:calllogpopover.view];
+            [self placeViewInSideWindow:calllogpopover.view];
             [self addChildViewController:calllogpopover];
             [calllogpopover didMoveToParentViewController:self];
             [self->ailoadindicator stopAnimating];
@@ -2878,8 +2886,8 @@
         
         [calllogpopover InitializeField];
         
-        calllogpopover.view.frame=self->mainWindow.bounds;
         [self->sidewindowview addSubview:calllogpopover.view];
+        [self placeViewInSideWindow:calllogpopover.view];
         [self addChildViewController:calllogpopover];
         [calllogpopover didMoveToParentViewController:self];
         [self->ailoadindicator stopAnimating];
@@ -3051,8 +3059,8 @@
         DTPopover.PopoverMode=@"PopoverDTFromLeadView";
         DTPopover.CallingKey=DetailsViewLead.leadkey;
         
-        DTPopover.view.frame=self->mainWindow.bounds;
         [self->sidewindowview addSubview:DTPopover.view];
+        [self placeViewInSideWindow:DTPopover.view];
         [self addChildViewController:DTPopover];
         [DTPopover didMoveToParentViewController:self];
         [self->ailoadindicator stopAnimating];
@@ -3194,6 +3202,204 @@
     return result;
 }
 
+-(CGFloat) visibleEdgeOverflowForMax:(CGFloat)viewMax safeMax:(CGFloat)safeMax fallback:(CGFloat)fallback
+{
+    UIWindow *window = self.view.window;
+    if (!window) {
+        return fallback;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect safeFrame = window.safeAreaLayoutGuide.layoutFrame;
+    if (CGRectIsEmpty(safeFrame) || safeFrame.size.width < 1 || safeFrame.size.height < 1) {
+        return fallback;
+    }
+    CGFloat viewEdge = (viewMax == 0) ? CGRectGetMaxX(frameInWindow) : CGRectGetMaxY(frameInWindow);
+    CGFloat safeEdge = (viewMax == 0) ? CGRectGetMaxX(safeFrame) : CGRectGetMaxY(safeFrame);
+    return MAX(0, viewEdge - safeEdge);
+}
+
+-(void) layoutLeadDetailsForCurrentSize
+{
+    CGFloat width = self.view.bounds.size.width;
+    CGFloat height = self.view.bounds.size.height;
+    if (width < 1 || height < 1) {
+        return;
+    }
+    selfViewWidth = width;
+    messagecontentwidth = MAX(width - 40, 0);
+    maxphotoperline = (width - 40) / photosize;
+    if (maxphotoperline < 1) {
+        maxphotoperline = 1;
+    }
+    
+    CGFloat trailing = [self visibleEdgeOverflowForMax:0 safeMax:0 fallback:self.view.safeAreaInsets.right];
+    CGFloat bottomInset = 0;
+    if (self.view.window) {
+        CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+        bottomInset = MAX(0, CGRectGetMaxY(frameInWindow) - CGRectGetMaxY(self.view.window.bounds));
+    }
+    if (masterViewTrailingConstraint && fabs(masterViewTrailingConstraint.constant - trailing) > 0.5) {
+        masterViewTrailingConstraint.constant = trailing;
+    }
+    if (masterViewBottomConstraint && fabs(masterViewBottomConstraint.constant - bottomInset) > 0.5) {
+        masterViewBottomConstraint.constant = bottomInset;
+    }
+    CGFloat top = MAX(self.view.safeAreaInsets.top, 0);
+    
+    if (headertitleview) {
+        CGFloat titleWidth = MAX(width - trailing - 300, 0);
+        headertitleview.frame = CGRectMake(150, 0, titleWidth, 68);
+        headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+        switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+        [self updateheadercentertitle];
+    }
+    
+    if (ViewLead) {
+        ViewLead.frame = CGRectMake(7, 103, MAX(width - trailing - 16, 0), MAX(height - bottomInset - 103, 0));
+    }
+    
+    if (ViewHistoryTableMasterView) {
+        CGFloat masterTop = MAX(top, 64);
+        ViewHistoryTableMasterView.frame = CGRectMake(0, masterTop, width, MAX(height - masterTop, 0));
+        for (UIView *subview in ViewHistoryTableMasterView.subviews) {
+            if (subview != self.viewHistoryCard && [subview isKindOfClass:[UIButton class]]) {
+                subview.frame = ViewHistoryTableMasterView.bounds;
+            }
+        }
+        if (self.viewHistoryCard) {
+            CGFloat cardWidth = MIN(220, MAX(width - trailing - 28, 0));
+            CGFloat cardX = width - trailing - cardWidth - 14;
+            if (cardX < 8) {
+                cardX = 8;
+            }
+            CGFloat cardHeight = ViewHistoryTableMasterView.bounds.size.height - 20 - bottomInset - 8;
+            if (cardHeight < 80) {
+                cardHeight = 80;
+            }
+            self.viewHistoryCard.frame = CGRectMake(cardX, 20, cardWidth, cardHeight);
+            for (UIView *subview in self.viewHistoryCard.subviews) {
+                if ([subview isKindOfClass:[UIButton class]]) {
+                    subview.frame = CGRectMake(cardWidth - 40, 0, 35, 35);
+                }
+            }
+            ViewHistoryTable.frame = CGRectMake(0, 35, cardWidth, MAX(cardHeight - 35, 0));
+        }
+    }
+    
+    if (viewhistorybutton) {
+        CGFloat buttonSize = 45;
+        if (self.historyButtonFollowsCorner) {
+            viewhistorybutton.frame = CGRectMake(width - trailing - buttonSize - 20, height - bottomInset - buttonSize - 20, buttonSize, buttonSize);
+        } else {
+            CGRect frame = viewhistorybutton.frame;
+            frame.origin.x = MIN(MAX(frame.origin.x, 8), MAX(width - trailing - buttonSize, 8));
+            frame.origin.y = MIN(MAX(frame.origin.y, top + 8), MAX(height - bottomInset - buttonSize, top + 8));
+            viewhistorybutton.frame = frame;
+        }
+    }
+    
+    [self layoutSideWindowForCurrentSize];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutLeadDetailsForCurrentSize];
+}
+
+-(UIWindow *) detailsSceneWindow
+{
+    if (self.view.window) {
+        return self.view.window;
+    }
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState != UISceneActivationStateForegroundActive && windowScene.activationState != UISceneActivationStateForegroundInactive) {
+            continue;
+        }
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow) {
+                return window;
+            }
+        }
+        if (windowScene.windows.firstObject) {
+            return windowScene.windows.firstObject;
+        }
+    }
+    SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
+    return sceneDelegate.window;
+}
+
+-(void) layoutSideWindowForCurrentSize
+{
+    if (!sidewindowview || self.sideWindowAnimating) {
+        return;
+    }
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    if (mainWindow != window) {
+        mainWindow = window;
+        mainviewcontroller = (MainViewController *)[window rootViewController];
+    }
+    if (sidewindowviewclosebutton.superview != window) {
+        [window addSubview:sidewindowviewclosebutton];
+    }
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    sidewindowviewclosebutton.frame = window.bounds;
+    
+    CGFloat windowWidth = window.bounds.size.width;
+    CGFloat windowHeight = window.bounds.size.height;
+    if (!self.sideWindowOpen) {
+        sidewindowview.hidden = YES;
+        sidewindowview.frame = CGRectMake(windowWidth, 0, 0, windowHeight);
+        sidewindowviewclosebutton.hidden = YES;
+        return;
+    }
+    sidewindowview.hidden = NO;
+    NSUInteger panelIndex = [window.subviews indexOfObject:sidewindowview];
+    NSUInteger dimmerIndex = [window.subviews indexOfObject:sidewindowviewclosebutton];
+    if (panelIndex != NSNotFound && dimmerIndex != NSNotFound && panelIndex < dimmerIndex) {
+        [window insertSubview:sidewindowview aboveSubview:sidewindowviewclosebutton];
+    }
+    CGFloat requestedWidth = self.sideWindowRequestedWidth > 0 ? self.sideWindowRequestedWidth : 320.0;
+    CGFloat panelWidth = MIN(requestedWidth, windowWidth);
+    sidewindowview.frame = CGRectMake(windowWidth - panelWidth, 0, panelWidth, windowHeight);
+    for (UIView *subview in sidewindowview.subviews) {
+        if (subview == ailoadindicator) {
+            continue;
+        }
+        subview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        subview.frame = sidewindowview.bounds;
+    }
+    ailoadindicator.center = CGPointMake(sidewindowview.bounds.size.width / 2.0 - 7.5, sidewindowview.bounds.size.height / 2.0 - 7.5);
+}
+
+-(CGFloat) clampedSideWindowWidth:(CGFloat)width
+{
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    if (width <= 0 || !mainWindow || mainWindow.bounds.size.width <= 0) {
+        return 0;
+    }
+    return MIN(width, mainWindow.bounds.size.width);
+}
+
+-(void) placeViewInSideWindow:(UIView *)view
+{
+    view.translatesAutoresizingMaskIntoConstraints = YES;
+    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    view.frame = sidewindowview.bounds;
+    view.clipsToBounds = YES;
+}
+
 -(void) loadgeneral
 {
     //MasterView=[[UIView alloc]initWithFrame:CGRectMake(0, 0, selfViewWidth, self.view.frame.size.height)];
@@ -3237,6 +3443,7 @@
     [ViewHistoryTableMasterView addSubview:closebutton];
     
     UIView *tableview=[[UIView alloc]initWithFrame:CGRectMake(selfViewWidth-234, 20, 220, self.view.bounds.size.height-108)];
+    self.viewHistoryCard=tableview;
     tableview.backgroundColor=[UIColor colorWithRed:210.0/255.0 green:210.0/255.0 blue:210.0/255.0 alpha:0.95];
     tableview.layer.cornerRadius=5;
     tableview.layer.masksToBounds=YES;
@@ -3257,7 +3464,7 @@
     ViewHistoryTable=[[UITableView alloc]initWithFrame:CGRectMake(0, 35, 220, 616) style:UITableViewStylePlain];
     ViewHistoryTable.separatorStyle = UITableViewCellSeparatorStyleNone;
     ViewHistoryTable.backgroundColor=[UIColor clearColor];
-    ViewHistoryTable.scrollEnabled=FALSE;
+    ViewHistoryTable.scrollEnabled=YES;
     ViewHistoryTable.delegate=self;
     ViewHistoryTable.dataSource=self;
     [tableview addSubview:ViewHistoryTable];
@@ -3697,6 +3904,7 @@
     }
     
     button.center = CGPointMake(x,y);
+    self.historyButtonFollowsCorner = NO;
     
     [recognizer setTranslation:CGPointZero inView:button];
 }
@@ -3979,25 +4187,45 @@
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
-    
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+
+    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - mainWindow.bounds.size.height) < 0.5) {
         return;
     }
-    
+
     if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
         [MyClass playsoundwithoption:@"open"];
     }
-    
+
+    if (width > 0) {
+        self.sideWindowRequestedWidth = width;
+    }
+    self.sideWindowOpen = width > 0;
+    self.sideWindowAnimating = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *subview in sidewindowview.subviews) {
+            if (subview == ailoadindicator) {
+                continue;
+            }
+            subview.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        self.sideWindowAnimating = NO;
         if (width==0) {
+            self.sideWindowOpen = NO;
+            sidewindowview.hidden = YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -4011,6 +4239,7 @@
                 }
             }
         }
+        [self layoutSideWindowForCurrentSize];
     }];
     sidewindowviewclosebutton.hidden=width==0?YES:NO;
     
@@ -4018,6 +4247,8 @@
 
 -(void) closesidewindow
 {
+    self.sideWindowOpen = NO;
+    self.sideWindowRequestedWidth = 0;
     [self adjustpresentingviewwidthwithwidth:0];
     if (lastviewindex==3) {
         [DetailsViewDTTable deselectRowAtIndexPath:[DetailsViewDTTable indexPathForSelectedRow] animated:YES];
@@ -4043,10 +4274,17 @@
 
 -(void) startsidewindowanimationwithwidth:(float)width
 {
+    if (!mainWindow) {
+        mainWindow = [self detailsSceneWindow];
+    }
+    self.sideWindowRequestedWidth = width;
+    self.sideWindowOpen = width > 0;
+    sidewindowview.hidden = width <= 0;
+    CGFloat panelWidth = [self clampedSideWindowWidth:width];
     ailoadindicator.hidden=NO;
-    ailoadindicator.center = CGPointMake(width/2-7.5,mainWindow.frame.size.height/2-7.5);
+    ailoadindicator.center = CGPointMake(panelWidth/2-7.5,mainWindow.bounds.size.height/2-7.5);
     [ailoadindicator startAnimating];
-    [self adjustpresentingviewwidthwithwidth:width];
+    [self adjustpresentingviewwidthwithwidth:panelWidth];
 }
 
 -(void) dt_instructor_pressed:(UIButton *)sender
@@ -4068,8 +4306,8 @@
         staffpopover.readonly=YES;
         staffpopover.StaffTableMode=@"View";
         
-        staffpopover.view.frame=self->mainWindow.bounds;
         [self->sidewindowview addSubview:staffpopover.view];
+        [self placeViewInSideWindow:staffpopover.view];
         [self addChildViewController:staffpopover];
         [staffpopover didMoveToParentViewController:self];
         [self->ailoadindicator stopAnimating];
@@ -5133,11 +5371,8 @@
         pickerviewcontroller.preferredContentSize=CGSizeMake(320, 40*readstatusdetailsarray.count);
         pickerviewcontroller.itemsarray=readstatusdetailsarray;
         
-        //pickerviewcontroller.view.frame=self->mainWindow.bounds;
-        CGRect frame=mainWindow.bounds;
-        frame.size.width=320;
-        pickerviewcontroller.view.frame=frame;
         [self->sidewindowview addSubview:pickerviewcontroller.view];
+        [self placeViewInSideWindow:pickerviewcontroller.view];
         [self addChildViewController:pickerviewcontroller];
         [pickerviewcontroller didMoveToParentViewController:self];
         [self->ailoadindicator stopAnimating];

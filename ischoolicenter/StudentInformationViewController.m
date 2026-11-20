@@ -38,6 +38,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
@@ -55,7 +56,6 @@
     
     //StudentCategoryContainerView.frame=CGRectMake(0, 0, 220, self.view.bounds.size.height);
     //StudentDetailsContainerView.frame=CGRectMake(220, 0, self.view.bounds.size.width-studentlistwidth, self.view.bounds.size.height);
-    destStudentDetailsViewController.preferredContentSize=StudentDetailsContainerView.frame.size;
     
     UIImageView *activityImageView=[[UIImageView alloc]init];
     activityImageView.animationImages=[MyClass returnLoadingIndicatorAnimatedImageWithBaseColor:@"lightgray"];
@@ -93,6 +93,8 @@
     studentlisttable.hidden=YES;
     
     studentsearchbar.placeholder=[MyClass returntitlewithtitle:@"Search"];
+    studentsearchbar.insetsLayoutMarginsFromSafeArea = NO;
+    studentsearchbar.superview.insetsLayoutMarginsFromSafeArea = NO;
     runviewdidappear=TRUE;
     
     [editStudentSelectAllButton setTitle:[MyClass returntitlewithtitle:@"Select all"] forState:UIControlStateNormal];
@@ -184,6 +186,48 @@
     [self updateCategoryCount];
     //[self.tableView reloadData];
     [tablerefresh endRefreshing];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    if (StudentDetailsContainerView.bounds.size.width > 1 && StudentDetailsContainerView.bounds.size.height > 1) {
+        destStudentDetailsViewController.preferredContentSize = StudentDetailsContainerView.bounds.size;
+    }
+    [self alignStudentSearchField];
+}
+
+// The search field keeps its own placeholder and icon. A window that is not
+// full screen adds a leading safe-area inset inside the bar; pull the field
+// back to the bar edge instead of shifting the text out of the field.
+- (void)alignStudentSearchField
+{
+    UISearchBar *searchBar = studentsearchbar;
+    if (!searchBar || searchBar.bounds.size.width < 1) {
+        return;
+    }
+    searchBar.searchFieldBackgroundPositionAdjustment = UIOffsetZero;
+    searchBar.searchTextPositionAdjustment = UIOffsetZero;
+    [searchBar setPositionAdjustment:UIOffsetZero forSearchBarIcon:UISearchBarIconSearch];
+
+    UITextField *field = searchBar.searchTextField;
+    UIView *container = field.superview;
+    if (container && container != searchBar) {
+        CGFloat containerLeading = CGRectGetMinX([container convertRect:container.bounds toView:searchBar]);
+        if (containerLeading > 1) {
+            CGRect containerFrame = container.frame;
+            containerFrame.origin.x -= containerLeading;
+            containerFrame.size.width += containerLeading;
+            container.frame = containerFrame;
+        }
+    }
+    CGFloat fieldLeading = CGRectGetMinX([field convertRect:field.bounds toView:searchBar]);
+    if (fieldLeading > 1) {
+        CGRect fieldFrame = field.frame;
+        fieldFrame.origin.x -= fieldLeading;
+        fieldFrame.size.width += fieldLeading;
+        field.frame = fieldFrame;
+    }
 }
 
 -(void) viewDidAppear:(BOOL)animated

@@ -3739,21 +3739,27 @@
 {
     [self.view layoutIfNeeded];
     
-    
-    CGFloat width = appBackgroundView.frame.size.width;//[UIScreen mainScreen].bounds.size.width;
-    CGFloat height = appBackgroundView.frame.size.height;//[UIScreen mainScreen].bounds.size.height;
-    
-//    UIWindow *mainWindow= [[[UIApplication sharedApplication] delegate] window];
     SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
     UIWindow *mainWindow = sceneDelegate.window;
     [mainWindow.rootViewController.view layoutIfNeeded];
     
+    CGFloat width = mainWindow.bounds.size.width;
+    CGFloat height = mainWindow.bounds.size.height;
+    if (width < 1 || height < 1) {
+        width = appBackgroundView.frame.size.width;
+        height = appBackgroundView.frame.size.height;
+    }
+    
     UIView * loadingindicatorview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, width, height)];
     loadingindicatorview.backgroundColor=[UIColor colorWithRed:180.0/255.0 green:180.0/255.0 blue:180.0/255.0 alpha:0.2];
+    loadingindicatorview.autoresizingMask=UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [mainWindow addSubview:loadingindicatorview];
     
     
-    UIView *centerview=[[UIView alloc]initWithFrame:CGRectMake((width-200)/2, (height-150)/2, 180, 140)];
+    UIView *centerview=[[UIView alloc]initWithFrame:CGRectMake(0, 0, 180, 140)];
+    centerview.center=CGPointMake(width/2.0, height/2.0);
+    centerview.tag=809;
+    centerview.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
     centerview.layer.cornerRadius=10;
     centerview.layer.masksToBounds=YES;
     [loadingindicatorview addSubview:centerview];

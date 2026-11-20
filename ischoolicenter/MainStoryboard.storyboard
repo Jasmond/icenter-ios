@@ -246,7 +246,7 @@
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="WBf-4u-oac">
                         <rect key="frame" x="0.0" y="0.0" width="800" height="768"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QC8-Ye-piy">
                                 <rect key="frame" x="0.0" y="0.0" width="800" height="768"/>
@@ -6207,6 +6207,8 @@
                         <outlet property="EnrollmentClassMenuView" destination="nPE-Sl-IFb" id="jzd-gF-QCM"/>
                         <outlet property="EnrollmentRecordView" destination="Ssx-te-Lv7" id="Gc6-q9-m6Q"/>
                         <outlet property="MasterView" destination="QC8-Ye-piy" id="hUa-4N-cjN"/>
+                        <outlet property="masterViewBottomConstraint" destination="p9z-jG-ISC" id="mB8-vB-2nD"/>
+                        <outlet property="masterViewTrailingConstraint" destination="1VN-Yn-8sj" id="mT7-vT-1nC"/>
                         <outlet property="MenuView" destination="ST8-0D-4Ch" id="l8B-io-A80"/>
                         <outlet property="MessageView" destination="T8E-rY-1VB" id="8uS-3n-3Xt"/>
                         <outlet property="ProductCategorySelectionButton" destination="T9G-gW-Mxh" id="k92-s7-nha"/>
@@ -15598,12 +15600,18 @@
                         <outlet property="StatusTable" destination="QCG-el-Yj4" id="jXA-I7-6Ak"/>
                         <outlet property="backgroundcenterimage" destination="tsS-fU-fy8" id="816-7s-c5C"/>
                         <outlet property="blurEffectView" destination="vr8-eD-2We" id="IcU-W5-DvQ"/>
+                        <outlet property="calendarPanelBackgroundConstraint" destination="v1t-t9-IG7" id="nR4-pL-8sK"/>
+                        <outlet property="calendarPanelHeaderConstraint" destination="Mgf-jY-9n1" id="pT2-wQ-6hD"/>
+                        <outlet property="calendarPanelStackConstraint" destination="7Us-si-2zQ" id="qU8-eM-3cA"/>
+                        <outlet property="datepreviousbutton" destination="wQ2-VC-g8X" id="rV1-kN-7bE"/>
                         <outlet property="filterview" destination="duO-8R-F3J" id="g3O-pi-6HW"/>
+                        <outlet property="headerbar" destination="Imv-t3-YID" id="sW6-dP-2aF"/>
                         <outlet property="mainstackview" destination="cRF-rE-aUQ" id="kXa-9i-2jq"/>
                         <outlet property="masterview" destination="pGS-9A-2nC" id="dbG-aN-zwO"/>
                         <outlet property="masterviewleadingconstraint" destination="5jd-BD-yml" id="QAh-Bt-sIq"/>
                         <outlet property="masterviewtrailingconstrain" destination="bjK-zU-dRp" id="eaS-lq-SEI"/>
                         <outlet property="slideScrollView" destination="B1U-Og-pki" id="P8n-kh-0VL"/>
+                        <outlet property="stackBottomConstraint" destination="UR2-6z-6E2" id="uB9-sB-4nC"/>
                         <outlet property="slideStack" destination="7cp-n9-QYh" id="FOw-aB-13J"/>
                         <outlet property="title_hotnews" destination="DAg-KM-Hrr" id="6n0-J9-nWM"/>
                         <outlet property="title_notification" destination="28a-v1-zb9" id="S5B-6N-2KE"/>
@@ -36965,7 +36973,7 @@
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="bRB-U8-9BY">
                         <rect key="frame" x="0.0" y="0.0" width="800" height="768"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6eo-Qf-jcB">
                                 <rect key="frame" x="0.0" y="0.0" width="800" height="768"/>
@@ -39061,6 +39069,8 @@
                         <outlet property="DetailsViewDTTable" destination="dwR-6W-jeJ" id="PMG-9y-6lT"/>
                         <outlet property="DetailsViewMessageTable" destination="H6T-0Z-GfE" id="mu3-A9-XIF"/>
                         <outlet property="MasterView" destination="6eo-Qf-jcB" id="trY-s7-ojA"/>
+                        <outlet property="masterViewBottomConstraint" destination="izD-L5-pfZ" id="ldB-bt-001"/>
+                        <outlet property="masterViewTrailingConstraint" destination="TWd-64-VvL" id="ldT-tr-001"/>
                         <outlet property="MessageView" destination="ebT-pt-tig" id="kA7-H0-NrF"/>
                         <outlet property="TopMenuView" destination="BVo-x6-Mh5" id="zI6-m2-d2F"/>
                         <outlet property="addContactLogbutton" destination="pbG-l1-K0j" id="tnm-71-uY8"/>
@@ -39131,7 +39141,7 @@
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="VCb-kJ-8Ti">
                         <rect key="frame" x="0.0" y="0.0" width="804" height="768"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FON-I6-pFG">
                                 <rect key="frame" x="0.0" y="0.0" width="804" height="70"/>

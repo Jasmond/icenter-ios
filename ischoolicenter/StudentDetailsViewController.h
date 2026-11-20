@@ -423,6 +423,8 @@
     ClassValidateMessage *classvalidatemessage;
     ClassValidateStatus *classvalidatestatus;
     __weak IBOutlet UIView *MasterView;
+    __weak IBOutlet NSLayoutConstraint *masterViewTrailingConstraint;
+    __weak IBOutlet NSLayoutConstraint *masterViewBottomConstraint;
     __weak IBOutlet UILabel *menulabel_student;
     __weak IBOutlet UILabel *menulabel_enrollment;
     __weak IBOutlet UILabel *menulabel_class;

@@ -11,6 +11,9 @@
 
 
 @interface FullScreenPhotoViewController ()
+{
+    CGSize laidOutPageSize;
+}
 
 @end
 
@@ -84,11 +87,36 @@
     [super viewWillAppear:animated];
     [self setNeedsStatusBarAppearanceUpdate];
     [self convertFileArray];
+    laidOutPageSize = CGSizeZero;
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    if (!filearray) {
+        return;
+    }
+    CGSize size = scrollview.bounds.size;
+    if (size.width < 1 || size.height < 1) {
+        return;
+    }
+    if (fabs(size.width - laidOutPageSize.width) < 0.5 && fabs(size.height - laidOutPageSize.height) < 0.5) {
+        return;
+    }
+    NSInteger pageIndex = index;
+    if (laidOutPageSize.width > 1) {
+        pageIndex = (NSInteger)llround(scrollview.contentOffset.x / laidOutPageSize.width);
+    }
+    if (pageIndex < 0) {
+        pageIndex = 0;
+    }
+    if (filearray.count > 0 && pageIndex >= (NSInteger)filearray.count) {
+        pageIndex = (NSInteger)filearray.count - 1;
+    }
+    laidOutPageSize = size;
     [[scrollview subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    scrollview.contentSize=CGSizeMake(self.view.frame.size.width*filearray.count, self.view.frame.size.height);
-    scrollview.contentOffset=CGPointMake(index*self.view.frame.size.width, 0);
-    [self moveSlideWindowWithPageIndex:index];
-    
+    scrollview.contentSize = CGSizeMake(size.width * filearray.count, size.height);
+    scrollview.contentOffset = CGPointMake(pageIndex * size.width, 0);
+    [self moveSlideWindowWithPageIndex:pageIndex];
 }
 
 -(void) moveSlideWindowWithPageIndex:(NSInteger)pageindex
@@ -120,7 +148,8 @@
             
             if (!fullscreenphotoview || ![fullscreenphotoview isKindOfClass:[fullScreenPhotoView class]]) {
                 FullScreenFileRecord *obj=[filearray objectAtIndex:i];
-                fullscreenphotoview=[[fullScreenPhotoView alloc]initWithFrame:CGRectMake(self.view.frame.size.width*i, 0, self.view.frame.size.width, self.view.frame.size.height) FullScreenFileObject:obj SlideIndex:i Mode:mode FullScreenViewcontroller:self];
+                CGSize pageSize = scrollview.bounds.size;
+                fullscreenphotoview=[[fullScreenPhotoView alloc]initWithFrame:CGRectMake(pageSize.width*i, 0, pageSize.width, pageSize.height) FullScreenFileObject:obj SlideIndex:i Mode:mode FullScreenViewcontroller:self];
                 
                 fullscreenphotoview.delegate=self;
                 [scrollview addSubview:fullscreenphotoview];
@@ -138,7 +167,11 @@
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    NSInteger pageIndex=round(scrollView.contentOffset.x/self.view.frame.size.width);
+    CGFloat pageWidth = scrollview.bounds.size.width;
+    if (pageWidth <= 0) {
+        return;
+    }
+    NSInteger pageIndex=(NSInteger)llround(scrollView.contentOffset.x/pageWidth);
     [self moveSlideWindowWithPageIndex:pageIndex];
     
     //NSInteger pageIndex=round(scrollView.contentOffset.x/self.view.frame.size.width);

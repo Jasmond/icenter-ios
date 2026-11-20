@@ -27,6 +27,28 @@
 
 @end
 
+@interface NotificationsRoundedMaskView : UIView
+@property (nonatomic) UIRectCorner roundedCorners;
+@property (nonatomic) CGFloat cornerRadius;
+@end
+
+@implementation NotificationsRoundedMaskView
+{
+    CAShapeLayer *_maskLayer;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (!_maskLayer) {
+        _maskLayer = [CAShapeLayer layer];
+        self.layer.mask = _maskLayer;
+    }
+    _maskLayer.frame = self.bounds;
+    _maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:self.bounds byRoundingCorners:self.roundedCorners cornerRadii:CGSizeMake(self.cornerRadius, self.cornerRadius)].CGPath;
+}
+
+@end
+
 //#define tablewidth (self.view.frame.size.width-120)/2
 //#define notificationcellheight 26
 //#define taskcellheight 60
@@ -84,20 +106,20 @@
     df=[[NSDateFormatter alloc]init]; df.locale=[[NSLocale alloc]initWithLocaleIdentifier:@"en_US"];
     
     //add reloadbutton
-    reloadbutton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-48, 31, 30, 30)];
+    reloadbutton=[[UIButton alloc]init];
     [reloadbutton setImage:[UIImage imageNamed:@"reload_white.png"] forState:UIControlStateNormal];
     [reloadbutton addTarget:self action:@selector(reloadpage:) forControlEvents:UIControlEventTouchUpInside];
     [masterview addSubview:reloadbutton];
     
     //add menu button
-    UIButton *menubutton=[[UIButton alloc]initWithFrame:CGRectMake(15, 35, 33, 22)];
+    UIButton *menubutton=[[UIButton alloc]init];
     [menubutton setImage:[UIImage imageNamed:@"menu-button.png"] forState:UIControlStateNormal];
     [menubutton addTarget:self action:@selector(slidebutton:) forControlEvents:UIControlEventTouchUpInside];
     [masterview addSubview:menubutton];
     
     
-    headertitleview=[[UIView alloc]initWithFrame:CGRectMake(70, 0, self.view.bounds.size.width-140, 68)];
-    headertitlename=[[UILabel alloc]initWithFrame:CGRectMake(0, 25, headertitleview.frame.size.width, 20)];
+    headertitleview=[[UIView alloc]init];
+    headertitlename=[[UILabel alloc]init];
     headertitlename.font=[UIFont boldSystemFontOfSize:17];
     headertitlename.textColor=[UIColor whiteColor];
     headertitlename.textAlignment=NSTextAlignmentCenter;
@@ -119,7 +141,7 @@
     [headertitleview addSubview:headercenternamearrow];
     //[self updateheadercentertitle];
     
-    switchcenterbutton=[[UIButton alloc]initWithFrame:CGRectMake(0, 0, headertitleview.frame.size.width,68)];
+    switchcenterbutton=[[UIButton alloc]init];
     //[switchcenterbutton setImage:[UIImage imageWithData:globalvariables.menuimagedata] forState:UIControlStateNormal];
     switchcenterbutton.layer.cornerRadius=5;
     switchcenterbutton.layer.masksToBounds=YES;
@@ -143,6 +165,7 @@
     StatusTable.rowHeight=UITableViewAutomaticDimension;
     StatusTable.estimatedRowHeight=80;
     StatusTable.backgroundColor=[UIColor clearColor];
+    [self alignColumnBottoms];
 
     displaydate=[NSDate date];
     olddisplaydate=displaydate;
@@ -178,7 +201,7 @@
     [StatusTable addSubview:tablerefresh];
     
     
-    masterviewbutton=[[UIButton alloc]initWithFrame:self.view.bounds];
+    masterviewbutton=[[UIButton alloc]init];
     [masterviewbutton addTarget:self action:@selector(closecalendar) forControlEvents:UIControlEventTouchUpInside];
     [masterview addSubview:masterviewbutton];
     masterviewbutton.hidden=YES;
@@ -188,7 +211,6 @@
     documentfolderbutton = [UIButton buttonWithType:UIButtonTypeCustom];
     [documentfolderbutton setImage:[UIImage imageNamed:@"documentfolder_icon.png"] forState:UIControlStateNormal];
     documentfolderbutton.showsTouchWhenHighlighted = YES;
-    documentfolderbutton.frame = CGRectMake(60, 28, 30,30);
     [documentfolderbutton setImageEdgeInsets:UIEdgeInsetsMake(6,1,1,6)];
     documentfolderbutton.layer.cornerRadius=5;
     documentfolderbutton.layer.masksToBounds=YES;
@@ -201,6 +223,7 @@
     documentfoldercountlabel.layer.masksToBounds=YES;
     [documentfolderbutton addSubview:documentfoldercountlabel];
     
+    [self installSizeTrackingConstraintsWithMenuButton:menubutton];
     [self refreshlanguage];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(checktoreloadapp) name:UIApplicationWillEnterForegroundNotification object:nil];
@@ -228,8 +251,7 @@
     period=[MyClass getlocaldbwithparameter:@"chartperiod"];
     
 //    mainWindow= [[[UIApplication sharedApplication] delegate] window];
-    SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
-    mainWindow = sceneDelegate.window;
+    mainWindow = [self notificationsSceneWindow];
     mainviewcontroller = (MainViewController*) [mainWindow rootViewController];
     sidewindowviewclosebutton=[[UIButton alloc]initWithFrame:mainWindow.bounds];
     sidewindowviewclosebutton.backgroundColor=[UIColor blackColor];
@@ -239,8 +261,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.clipsToBounds=YES;
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -255,7 +280,7 @@
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
-    ailoadindicator.center = CGPointMake(152.5,mainWindow.frame.size.height/2-7.5);
+    ailoadindicator.center = CGPointMake(152.5,mainWindow.bounds.size.height/2-7.5);
     ailoadindicator.hidesWhenStopped = YES;
     [ailoadindicator addSubview:activityImageView];
     [sidewindowview addSubview:ailoadindicator];
@@ -273,30 +298,373 @@
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-    // Get the actual width allocated to your app/view after the fold/unfold
-    CGFloat currentAppWidth = self.view.bounds.size.width;
+    if (self.view.bounds.size.width < 1 || self.view.bounds.size.height < 1) {
+        return;
+    }
     
-    // Compare against the previous width to detect a fold or unfold transition
-    if (currentAppWidth != lastAppWidth) {
-        lastAppWidth = currentAppWidth;
-//        
-//        // Force your table view to reload for the new screen dimensions
-//        [slidescrollview.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-        [self.view layoutIfNeeded];
-//        [NotificationsTable layoutIfNeeded];
-//        
-//        [NotificationsTable reloadData];
-//        if(calendarmasterviewtopconstraint.constant!=0){
-//            calendarmasterviewtopconstraint.constant=self.view.frame.size.height;
-//        }
+    [self installVisibleEdgeConstraints];
+    [self applyVisibleTrailingInset];
+    [self applyVisibleBottomInset];
+    
+    [self updateSlideLayoutForCurrentWidth];
+    [self updateCalendarFrame];
+    [self updateheadercentertitle];
+    [self layoutSideWindowForCurrentSize];
+    
+    CGFloat tableWidth = NotificationsTable.bounds.size.width;
+    if (tableWidth > 0 && lastNotificationsTableWidth == 0) {
+        lastNotificationsTableWidth = tableWidth;
+    } else if (tableWidth > 0 && fabs(tableWidth - lastNotificationsTableWidth) > 0.5) {
+        lastNotificationsTableWidth = tableWidth;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self->NotificationsTable reloadData];
+        });
+    }
+}
+
+-(void) alignColumnBottoms
+{
+    if (!NotificationsTable || !StatusTable || !slideScrollView || !mainstackview) {
+        return;
+    }
+    mainstackview.alignment = UIStackViewAlignmentFill;
+    mainstackview.clipsToBounds = YES;
+    // Hot News is a scroll view in a stack, so its height follows the cards and the
+    // last card ends below the other columns. Pin the visible bottoms together.
+    [slideScrollView setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
+    [slideScrollView setContentCompressionResistancePriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
+    UIView *hotNewsContainer = slideScrollView.superview;
+    [hotNewsContainer setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
+    [hotNewsContainer setContentCompressionResistancePriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
+    hotNewsContainer.clipsToBounds = YES;
+    
+    NSLayoutConstraint *statusBottom = [StatusTable.bottomAnchor constraintEqualToAnchor:NotificationsTable.bottomAnchor];
+    NSLayoutConstraint *hotNewsBottom = [slideScrollView.bottomAnchor constraintEqualToAnchor:NotificationsTable.bottomAnchor];
+    statusBottom.priority = UILayoutPriorityRequired;
+    hotNewsBottom.priority = UILayoutPriorityRequired;
+    statusBottom.active = YES;
+    hotNewsBottom.active = YES;
+}
+
+-(CGFloat) calendarPanelWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    if (width < 1) {
+        return 320.0;
+    }
+    return MIN(320.0, width);
+}
+
+-(void) installVisibleEdgeConstraints
+{
+    if (headerVisibleTrailing || !headerbar || !filterview || !mainstackview) {
+        return;
+    }
+    // These storyboard insets are relative to masterview, which is 320pt wider than
+    // the window. Pin the visible chrome to the window edge instead.
+    calendarPanelHeaderConstraint.active = NO;
+    calendarPanelBackgroundConstraint.active = NO;
+    calendarPanelStackConstraint.active = NO;
+    
+    headerVisibleTrailing = [headerbar.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor];
+    backgroundVisibleTrailing = [filterview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor];
+    stackVisibleTrailing = [mainstackview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-20];
+    [NSLayoutConstraint activateConstraints:@[headerVisibleTrailing, backgroundVisibleTrailing, stackVisibleTrailing]];
+}
+
+-(CGFloat) visibleBottomInset
+{
+    UIWindow *window = self.view.window;
+    if (!window) {
+        return self.view.safeAreaInsets.bottom;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect safeFrame = window.safeAreaLayoutGuide.layoutFrame;
+    if (CGRectIsEmpty(safeFrame) || safeFrame.size.height < 1) {
+        return self.view.safeAreaInsets.bottom;
+    }
+    CGFloat overflow = CGRectGetMaxY(frameInWindow) - CGRectGetMaxY(safeFrame);
+    return MAX(0, overflow);
+}
+
+-(void) applyVisibleBottomInset
+{
+    if (!stackBottomConstraint) {
+        return;
+    }
+    CGFloat inset = [self visibleBottomInset];
+    if (fabs(inset - appliedBottomInset) < 0.5) {
+        return;
+    }
+    appliedBottomInset = inset;
+    // masterview.bottom = stack.bottom + constant, so a positive constant lifts the columns.
+    stackBottomConstraint.constant = inset;
+}
+
+-(CGFloat) visibleTrailingInset
+{
+    UIWindow *window = self.view.window;
+    if (!window) {
+        return self.view.safeAreaInsets.right;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGRect safeFrame = window.safeAreaLayoutGuide.layoutFrame;
+    if (CGRectIsEmpty(safeFrame) || safeFrame.size.width < 1) {
+        return self.view.safeAreaInsets.right;
+    }
+    CGFloat overflow = CGRectGetMaxX(frameInWindow) - CGRectGetMaxX(safeFrame);
+    return MAX(0, overflow);
+}
+
+-(void) applyVisibleTrailingInset
+{
+    if (!headerVisibleTrailing || calendarOpen) {
+        return;
+    }
+    CGFloat inset = [self visibleTrailingInset];
+    if (fabs(inset - appliedTrailingInset) < 0.5) {
+        return;
+    }
+    CGFloat delta = inset - appliedTrailingInset;
+    appliedTrailingInset = inset;
+    headerVisibleTrailing.constant -= delta;
+    backgroundVisibleTrailing.constant -= delta;
+    stackVisibleTrailing.constant -= delta;
+}
+
+-(void) updateCalendarPanelConstraints
+{
+    [self installVisibleEdgeConstraints];
+    if (!headerVisibleTrailing) {
+        return;
+    }
+    CGFloat panelWidth = [self calendarPanelWidth];
+    CGFloat inset = [self visibleTrailingInset];
+    appliedTrailingInset = inset;
+    CGFloat shift = (calendarOpen ? panelWidth : 0) + inset;
+    headerVisibleTrailing.constant = -shift;
+    backgroundVisibleTrailing.constant = -shift;
+    stackVisibleTrailing.constant = -20 - shift;
+    if (masterviewButtonTrailing) {
+        masterviewButtonTrailing.constant = -(panelWidth + inset);
+    }
+    if (calendarOpen) {
+        masterviewleadingconstraint.constant = -panelWidth;
+        masterviewtrailingconstrain.constant = 0;
+    } else {
+        masterviewleadingconstraint.constant = 0;
+        masterviewtrailingconstrain.constant = -panelWidth;
+    }
+}
+
+-(void) updateCalendarFrame
+{
+    CGFloat panelWidth = [self calendarPanelWidth];
+    CGFloat height = self.view.bounds.size.height;
+    if (panelWidth < 1 || height < 1) {
+        return;
+    }
+    CGRect frame = CGRectMake(self.view.bounds.size.width - [self visibleTrailingInset], 0, panelWidth, height);
+    BOOL sizeChanged = !calendarview
+        || fabs(calendarview.bounds.size.width - panelWidth) > 0.5
+        || fabs(calendarview.bounds.size.height - height) > 0.5;
+    if (sizeChanged) {
         [calendarview removeFromSuperview];
-        //add side calendar
-        calendarview=[[CalendarView alloc]initWithFrame:CGRectMake(self.view.bounds.size.width, 0, 320, self.view.bounds.size.height) Theme:2 CanPickHoliday:NO MultipleSelection:NO ShowTodayButton:YES showclassdot:YES schedulerecord:nil  UpdateScheduleMode:nil availablemakeuptimeslots:nil instructoravailability:nil dataType:@"" disablecalendar:FALSE];
+        calendarview=[[CalendarView alloc]initWithFrame:frame Theme:2 CanPickHoliday:NO MultipleSelection:NO ShowTodayButton:YES showclassdot:YES schedulerecord:nil  UpdateScheduleMode:nil availablemakeuptimeslots:nil instructoravailability:nil dataType:@"" disablecalendar:FALSE];
         calendarview.delegate=self;
         [masterview addSubview:calendarview];
-//
-        NSLog(@"Fold state changed! New App Width: %.2f %.2f", currentAppWidth,NotificationsTable.frame.size.width);
+    } else {
+        calendarview.frame=frame;
     }
+}
+
+-(void) updateSlideLayoutForCurrentWidth
+{
+    CGFloat newWidth = slideScrollView.bounds.size.width;
+    if (newWidth <= 0 || fabs(newWidth - slidewidth) <= 0.5) {
+        return;
+    }
+    NSInteger page = 0;
+    if (slideheight > 0) {
+        page = (NSInteger)llround(slideScrollView.contentOffset.y / slideheight);
+    }
+    slidewidth = newWidth;
+    slideheight = slidewidth * 11.0 / 16.0;
+    if (!SlideArray) {
+        return;
+    }
+    [[slideScrollView subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    slideScrollView.contentSize=CGSizeMake(slidewidth, slideheight*SlideArray.count);
+    if (page < 0) {
+        page = 0;
+    }
+    [self moveSlideWindowWithPageIndex:page ScrollView:slideScrollView];
+    if (page > 0) {
+        CGFloat offsety = page * slideheight;
+        if (slideScrollView.contentSize.height - offsety < slideScrollView.bounds.size.height) {
+            offsety = slideScrollView.contentSize.height - slideScrollView.bounds.size.height;
+        }
+        if (offsety < 0) {
+            offsety = 0;
+        }
+        slideScrollView.contentOffset=CGPointMake(0, offsety);
+    }
+}
+
+-(void) installSizeTrackingConstraintsWithMenuButton:(UIButton *)menubutton
+{
+    reloadbutton.translatesAutoresizingMaskIntoConstraints=NO;
+    menubutton.translatesAutoresizingMaskIntoConstraints=NO;
+    documentfolderbutton.translatesAutoresizingMaskIntoConstraints=NO;
+    headertitleview.translatesAutoresizingMaskIntoConstraints=NO;
+    headertitlename.translatesAutoresizingMaskIntoConstraints=NO;
+    switchcenterbutton.translatesAutoresizingMaskIntoConstraints=NO;
+    headercentername.translatesAutoresizingMaskIntoConstraints=NO;
+    headercenternamearrow.translatesAutoresizingMaskIntoConstraints=NO;
+    masterviewbutton.translatesAutoresizingMaskIntoConstraints=NO;
+    
+    UILayoutGuide *safeArea = masterview.safeAreaLayoutGuide;
+    [NSLayoutConstraint activateConstraints:@[
+        [menubutton.leadingAnchor constraintEqualToAnchor:safeArea.leadingAnchor constant:15],
+        [menubutton.centerYAnchor constraintEqualToAnchor:headerbar.centerYAnchor],
+        [menubutton.widthAnchor constraintEqualToConstant:33],
+        [menubutton.heightAnchor constraintEqualToConstant:22],
+        
+        [documentfolderbutton.leadingAnchor constraintEqualToAnchor:menubutton.trailingAnchor constant:12],
+        [documentfolderbutton.centerYAnchor constraintEqualToAnchor:headerbar.centerYAnchor],
+        [documentfolderbutton.widthAnchor constraintEqualToConstant:30],
+        [documentfolderbutton.heightAnchor constraintEqualToConstant:30],
+        
+        [headertitleview.leadingAnchor constraintEqualToAnchor:documentfolderbutton.trailingAnchor constant:8],
+        [headertitleview.trailingAnchor constraintEqualToAnchor:reloadbutton.leadingAnchor constant:-8],
+        [headertitleview.topAnchor constraintEqualToAnchor:masterview.topAnchor],
+        [headertitleview.heightAnchor constraintEqualToConstant:68],
+        
+        [headertitlename.leadingAnchor constraintEqualToAnchor:headertitleview.leadingAnchor],
+        [headertitlename.trailingAnchor constraintEqualToAnchor:headertitleview.trailingAnchor],
+        [headertitlename.topAnchor constraintEqualToAnchor:headertitleview.topAnchor constant:25],
+        [headertitlename.heightAnchor constraintEqualToConstant:20],
+        
+        [switchcenterbutton.leadingAnchor constraintEqualToAnchor:headertitleview.leadingAnchor],
+        [switchcenterbutton.trailingAnchor constraintEqualToAnchor:headertitleview.trailingAnchor],
+        [switchcenterbutton.topAnchor constraintEqualToAnchor:headertitleview.topAnchor],
+        [switchcenterbutton.bottomAnchor constraintEqualToAnchor:headertitleview.bottomAnchor],
+        
+        [reloadbutton.trailingAnchor constraintEqualToAnchor:datepreviousbutton.leadingAnchor constant:-8],
+        [reloadbutton.centerYAnchor constraintEqualToAnchor:headerbar.centerYAnchor],
+        [reloadbutton.widthAnchor constraintEqualToConstant:30],
+        [reloadbutton.heightAnchor constraintEqualToConstant:30],
+        
+        [masterviewbutton.leadingAnchor constraintEqualToAnchor:masterview.leadingAnchor],
+        [masterviewbutton.topAnchor constraintEqualToAnchor:masterview.topAnchor],
+        [masterviewbutton.bottomAnchor constraintEqualToAnchor:masterview.bottomAnchor],
+    ]];
+    
+    masterviewButtonTrailing = [masterviewbutton.trailingAnchor constraintEqualToAnchor:masterview.trailingAnchor constant:-[self calendarPanelWidth]];
+    masterviewButtonTrailing.active = YES;
+    
+    headerCenterNameWidth = [headercentername.widthAnchor constraintEqualToConstant:0];
+    headerCenterNameCenterX = [headercentername.centerXAnchor constraintEqualToAnchor:headertitleview.centerXAnchor];
+    [NSLayoutConstraint activateConstraints:@[
+        [headercentername.topAnchor constraintEqualToAnchor:headertitleview.topAnchor constant:43],
+        [headercentername.heightAnchor constraintEqualToConstant:22],
+        headerCenterNameWidth,
+        headerCenterNameCenterX,
+        [headercenternamearrow.leadingAnchor constraintEqualToAnchor:headercentername.trailingAnchor],
+        [headercenternamearrow.centerYAnchor constraintEqualToAnchor:headercentername.centerYAnchor],
+        [headercenternamearrow.widthAnchor constraintEqualToConstant:8],
+        [headercenternamearrow.heightAnchor constraintEqualToConstant:8],
+    ]];
+    [self installVisibleEdgeConstraints];
+}
+
+-(UIWindow *) notificationsSceneWindow
+{
+    if (self.view.window) {
+        return self.view.window;
+    }
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState != UISceneActivationStateForegroundActive && windowScene.activationState != UISceneActivationStateForegroundInactive) {
+            continue;
+        }
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow) {
+                return window;
+            }
+        }
+        if (windowScene.windows.firstObject) {
+            return windowScene.windows.firstObject;
+        }
+    }
+    SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
+    return sceneDelegate.window;
+}
+
+-(void) layoutSideWindowForCurrentSize
+{
+    if (!sidewindowview || sideWindowAnimating) {
+        return;
+    }
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    if (mainWindow != window) {
+        mainWindow = window;
+        mainviewcontroller = (MainViewController *)[window rootViewController];
+    }
+    if (sidewindowviewclosebutton.superview != window) {
+        [window addSubview:sidewindowviewclosebutton];
+    }
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    sidewindowviewclosebutton.frame = window.bounds;
+    
+    CGFloat windowWidth = window.bounds.size.width;
+    CGFloat windowHeight = window.bounds.size.height;
+    CGFloat requestedWidth = sideWindowRequestedWidth > 0 ? sideWindowRequestedWidth : 320.0;
+    CGFloat panelWidth = MIN(requestedWidth, windowWidth);
+    if (sideWindowOpen) {
+        sidewindowview.hidden = NO;
+        sidewindowview.frame = CGRectMake(windowWidth - panelWidth, 0, panelWidth, windowHeight);
+        [window bringSubviewToFront:sidewindowview];
+    } else {
+        sidewindowview.hidden = YES;
+        sidewindowview.frame = CGRectMake(windowWidth, 0, 0, windowHeight);
+        sidewindowviewclosebutton.hidden = YES;
+    }
+    for (UIView *subview in sidewindowview.subviews) {
+        if (subview == ailoadindicator) {
+            continue;
+        }
+        subview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        subview.frame = sidewindowview.bounds;
+    }
+    ailoadindicator.center = CGPointMake(sidewindowview.bounds.size.width / 2.0 - 7.5, sidewindowview.bounds.size.height / 2.0 - 7.5);
+}
+
+-(CGFloat) clampedSideWindowWidth:(CGFloat)width
+{
+    if (width <= 0 || mainWindow.bounds.size.width <= 0) {
+        return 0;
+    }
+    return MIN(width, mainWindow.bounds.size.width);
+}
+
+-(void) placeChildInSideWindow:(UIViewController *)viewcontroller
+{
+    viewcontroller.view.translatesAutoresizingMaskIntoConstraints = YES;
+    viewcontroller.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    viewcontroller.view.frame = sidewindowview.bounds;
+    viewcontroller.view.clipsToBounds = YES;
+    [sidewindowview addSubview:viewcontroller.view];
+    [self addChildViewController:viewcontroller];
+    [viewcontroller didMoveToParentViewController:self];
 }
 
 -(void) documentfolderbuttonpressed:(id)sender
@@ -308,11 +676,8 @@
         documentfolderpopover.delegate=self;
         documentfolderpopover.menubutton=2;
         
-        documentfolderpopover.view.frame=mainWindow.bounds;
-        [sidewindowview addSubview:documentfolderpopover.view];
-        [self addChildViewController:documentfolderpopover];
         documentfolderpopover.view.clipsToBounds=YES;
-        [documentfolderpopover didMoveToParentViewController:self];
+        [self placeChildInSideWindow:documentfolderpopover];
         [ailoadindicator stopAnimating];
         ailoadindicator.hidden=YES;
     });
@@ -394,15 +759,17 @@
 
 -(void) updateheadercentertitle
 {
-    
-    [headercentername sizeToFit];
-    CGRect myframe=headercentername.frame;
-    if (myframe.size.width>headertitleview.frame.size.width) {
-        headercentername.frame=CGRectMake([MyClass isMultiCenterUser]?-4:0, 43, headertitleview.frame.size.width, 22);
-    }else{
-        headercentername.frame=CGRectMake((headertitleview.frame.size.width-myframe.size.width)/2+([MyClass isMultiCenterUser]?-4:0), 43, myframe.size.width, 22);
+    if (!headerCenterNameWidth) {
+        return;
     }
-    headercenternamearrow.frame=CGRectMake(headercentername.frame.size.width+headercentername.frame.origin.x, 50.5, 8, 8);
+    CGFloat textWidth = ceil(headercentername.intrinsicContentSize.width);
+    CGFloat maxWidth = headertitleview.bounds.size.width;
+    if (maxWidth > 0 && textWidth > maxWidth) {
+        headerCenterNameWidth.constant = maxWidth;
+    } else {
+        headerCenterNameWidth.constant = MAX(textWidth, 0);
+    }
+    headerCenterNameCenterX.constant = [MyClass isMultiCenterUser] ? -4 : 0;
 }
 
 -(void) viewDidAppear:(BOOL)animated
@@ -683,11 +1050,10 @@
 
 -(void) closecalendar
 {
+    calendarOpen=NO;
     [self.mainSlideMenu enableSlidePanGestureForLeftMenu];
     [UIView animateWithDuration:0.3 animations:^{
-        //masterview.frame=CGRectMake(0, 0, masterview.frame.size.width, masterview.frame.size.height);
-        masterviewleadingconstraint.constant=0;
-        masterviewtrailingconstrain.constant=-320;
+        [self updateCalendarPanelConstraints];
         [self.view layoutIfNeeded];
     } completion:^(BOOL finished){masterviewbutton.hidden=YES;}];
 }
@@ -704,9 +1070,8 @@
     });
     
     [UIView animateWithDuration:0.3 animations:^{
-        //masterview.frame=CGRectMake(320, 0, masterview.frame.size.width, masterview.frame.size.height);
-        masterviewleadingconstraint.constant=-320;
-        masterviewtrailingconstrain.constant=0;
+        calendarOpen=YES;
+        [self updateCalendarPanelConstraints];
         [self.view layoutIfNeeded];
         masterviewbutton.hidden=NO;
     } completion:nil];
@@ -1434,26 +1799,34 @@
             return nil;
         }
         
-        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, [tableView rectForHeaderInSection:section].size.height)];
+        CGFloat headerWidth = tableView.frame.size.width;
+        CGFloat headerHeight = [tableView rectForHeaderInSection:section].size.height;
+        NotificationsRoundedMaskView *headerView = [[NotificationsRoundedMaskView alloc] initWithFrame:CGRectMake(0, 0, headerWidth, headerHeight)];
+        headerView.roundedCorners = UIRectCornerTopLeft | UIRectCornerTopRight;
+        headerView.cornerRadius = 10;
         headerView.backgroundColor=[UIColor colorWithRed:200.0/255.0 green:200.0/255.0 blue:200.0/255.0 alpha:0.8];
         
         
-        CAShapeLayer * maskLayer = [CAShapeLayer layer];
-        maskLayer.path = [UIBezierPath bezierPathWithRoundedRect: headerView.bounds byRoundingCorners: UIRectCornerTopLeft | UIRectCornerTopRight cornerRadii: (CGSize){10.0, 10.0}].CGPath;
-        headerView.layer.mask = maskLayer;
-        
         UIImageView *myImage=[[UIImageView alloc]init];
-        CGFloat size=[tableView rectForHeaderInSection:section].size.height-10;
+        CGFloat size=headerHeight-10;
         myImage.frame=CGRectMake(5, 5, size, size);
         myImage.layer.cornerRadius=3;
         myImage.layer.masksToBounds=YES;
         
         
         UILabel *myLabel = [[UILabel alloc] init];
-        myLabel.frame = CGRectMake(30, 0, 260, [tableView rectForHeaderInSection:section].size.height);
+        CGFloat countWidth = MIN(140.0, headerWidth * 0.35);
+        if (countWidth < 0) {
+            countWidth = 0;
+        }
+        CGFloat countX = MAX(headerWidth - countWidth - 8.0, 0);
+        CGFloat titleWidth = MAX(countX - 8.0 - 30.0, 0);
+        myLabel.frame = CGRectMake(30, 0, titleWidth, headerHeight);
+        myLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         myLabel.font = [UIFont boldSystemFontOfSize:16];
         
-        UILabel *myCount = [[UILabel alloc] initWithFrame:CGRectMake([tableView rectForHeaderInSection:section].size.width-140-8, 0, 140, [tableView rectForHeaderInSection:section].size.height)];
+        UILabel *myCount = [[UILabel alloc] initWithFrame:CGRectMake(countX, 0, countWidth, headerHeight)];
+        myCount.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight;
         myCount.textAlignment=NSTextAlignmentRight;
         myCount.font = [UIFont systemFontOfSize:12];
         
@@ -1526,11 +1899,11 @@
         UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, [tableView rectForFooterInSection:section].size.height)];
         footerView.backgroundColor=[UIColor clearColor];
         
-        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, [tableView rectForFooterInSection:section].size.height-10)];
+        NotificationsRoundedMaskView *footer = [[NotificationsRoundedMaskView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, [tableView rectForFooterInSection:section].size.height-10)];
+        footer.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        footer.roundedCorners = UIRectCornerBottomLeft | UIRectCornerBottomRight;
+        footer.cornerRadius = 10;
         footer.backgroundColor=[UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:0.7];
-        CAShapeLayer * maskLayer = [CAShapeLayer layer];
-        maskLayer.path = [UIBezierPath bezierPathWithRoundedRect: footer.bounds byRoundingCorners: UIRectCornerBottomLeft | UIRectCornerBottomRight cornerRadii: (CGSize){10.0, 10.0}].CGPath;
-        footer.layer.mask = maskLayer;
         
         
         [footerView addSubview:footer];
@@ -1804,6 +2177,9 @@
 -(void) scrollViewDidScroll:(UIScrollView *)scrollView
 {
     if (scrollView==slideScrollView) {
+        if (slideheight <= 0) {
+            return;
+        }
         NSInteger pageIndex=round(scrollView.contentOffset.y/slideheight);
         if (pageIndex!=lastscrollindex) {
             lastscrollindex=pageIndex;
@@ -1935,10 +2311,7 @@
             return;
         }
         
-        messagepopover.view.frame=mainWindow.bounds;
-        [sidewindowview addSubview:messagepopover.view];
-        [self addChildViewController:messagepopover];
-        [messagepopover didMoveToParentViewController:self];
+        [self placeChildInSideWindow:messagepopover];
         [ailoadindicator stopAnimating];
         ailoadindicator.hidden=YES;
     });
@@ -2442,10 +2815,7 @@
         classphotopopover.delegate=self;
         classphotopopover.classphotoobject=photoobject;
         classphotopopover.mode=mode;
-        classphotopopover.view.frame=CGRectMake(0, 0, 320, self.view.frame.size.height);
-        [self->sidewindowview addSubview:classphotopopover.view];
-        [self addChildViewController:classphotopopover];
-        [classphotopopover didMoveToParentViewController:self];
+        [self placeChildInSideWindow:classphotopopover];
         [self->ailoadindicator stopAnimating];
         self->ailoadindicator.hidden=YES;
     });
@@ -2497,10 +2867,7 @@
             return;
         }
         
-        messagepopover.view.frame=mainWindow.bounds;
-        [sidewindowview addSubview:messagepopover.view];
-        [self addChildViewController:messagepopover];
-        [messagepopover didMoveToParentViewController:self];
+        [self placeChildInSideWindow:messagepopover];
         [ailoadindicator stopAnimating];
         ailoadindicator.hidden=YES;
     });
@@ -2597,19 +2964,29 @@
 
 -(void) startsidewindowanimationwithwidth:(float)width
 {
+    if (!mainWindow) {
+        mainWindow = [self notificationsSceneWindow];
+    }
+    sideWindowRequestedWidth = width;
+    sideWindowOpen = width > 0;
+    sidewindowview.hidden = width <= 0;
+    CGFloat panelWidth = [self clampedSideWindowWidth:width];
     ailoadindicator.hidden=NO;
-    ailoadindicator.center = CGPointMake(width/2-7.5,mainWindow.frame.size.height/2-7.5);
+    ailoadindicator.center = CGPointMake(panelWidth/2-7.5,mainWindow.bounds.size.height/2-7.5);
     [ailoadindicator startAnimating];
-    [self adjustpresentingviewwidthwithwidth:width];
+    [self adjustpresentingviewwidthwithwidth:panelWidth];
 }
 
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - mainWindow.bounds.size.height) < 0.5) {
         return;
     }
     
@@ -2617,13 +2994,22 @@
         [MyClass playsoundwithoption:@"open"];
     }
     
+    sideWindowAnimating = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *subview in sidewindowview.subviews) {
+            if (subview == ailoadindicator) {
+                continue;
+            }
+            subview.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        sideWindowAnimating = NO;
         if (width==0) {
+            sideWindowOpen = NO;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -2637,13 +3023,16 @@
                 }
             }
         }
+        [self layoutSideWindowForCurrentSize];
     }];
     sidewindowviewclosebutton.hidden=width==0?YES:NO;
+    sidewindowviewclosebutton.frame=mainWindow.bounds;
     
 }
 
 -(void) closesidewindow
 {
+    sideWindowOpen=NO;
     [self adjustpresentingviewwidthwithwidth:0];
 }
 

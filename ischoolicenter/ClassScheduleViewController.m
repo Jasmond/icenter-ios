@@ -24,8 +24,10 @@
 
 
 @interface ClassScheduleViewController ()<myDTAddEditViewControllerDelegate,myLeadDetailsViewController>
-
-
+@property (nonatomic, assign) CGFloat sideWindowRequestedWidth;
+@property (nonatomic, assign) BOOL sideWindowOpen;
+@property (nonatomic, assign) BOOL sideWindowAnimating;
+@property (nonatomic, assign) CGFloat laidOutScheduleWidth;
 @end
 
 #define confirmationwidth 110
@@ -99,6 +101,7 @@
 {
     
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     // Do any additional setup after loading the view.
     
     globalvariables=[GlobalVariables singleObj];
@@ -485,8 +488,11 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
+    sidewindowview.clipsToBounds=YES;
     sidewindowview.tag=-200;
     [mainWindow addSubview:sidewindowview];
     
@@ -1323,7 +1329,7 @@
                             return;
                         }
                         
-                        dtpopover.view.frame=mainWindow.bounds;
+                        [self placeViewInSideWindow:dtpopover.view];
                         [sidewindowview addSubview:dtpopover.view];
                         [self addChildViewController:dtpopover];
                         [dtpopover didMoveToParentViewController:self];
@@ -1346,7 +1352,7 @@
                             return;
                         }*/
                         
-                        remarksuppopover.view.frame=mainWindow.bounds;
+                        [self placeViewInSideWindow:remarksuppopover.view];
                         [sidewindowview addSubview:remarksuppopover.view];
                         [self addChildViewController:remarksuppopover];
                         [remarksuppopover didMoveToParentViewController:self];
@@ -2791,7 +2797,7 @@
         makeuppopover.PopoverLessonAndClassRecord=[LessonClassRecordArray objectAtIndex:index];
         makeuppopover.PopoverOption=@"DailyScheduleLesson";
         
-        makeuppopover.view.frame=mainWindow.bounds;
+        [self placeViewInSideWindow:makeuppopover.view];
         [sidewindowview addSubview:makeuppopover.view];
         [self addChildViewController:makeuppopover];
         [makeuppopover didMoveToParentViewController:self];
@@ -2952,7 +2958,7 @@
             //classpopover.PopoverStudent=DetailsViewStudent;
             makeuppopover.preferredContentSize=CGSizeMake(320, self.view.frame.size.height);
             
-            makeuppopover.view.frame=mainWindow.bounds;
+            [self placeViewInSideWindow:makeuppopover.view];
             [sidewindowview addSubview:makeuppopover.view];
             [self addChildViewController:makeuppopover];
             [makeuppopover didMoveToParentViewController:self];
@@ -5830,7 +5836,7 @@
     [UIView animateWithDuration:0.3 animations:^{
         //supermasterview.frame=CGRectMake(0, 0, supermasterview.frame.size.width, supermasterview.frame.size.height);
         masterviewleadingconstraint.constant=0;
-        masterviewtrailingconstraint.constant=-320;
+        masterviewtrailingconstraint.constant=[self scheduleTrailingConstant];
         [self.view layoutIfNeeded];
     } completion:^(BOOL finished){supermasterviewbutton.hidden=YES;}];
 }
@@ -5860,7 +5866,7 @@
     [UIView animateWithDuration:0.3 animations:^{
         //supermasterview.frame=CGRectMake(-320, 0, supermasterview.frame.size.width, supermasterview.frame.size.height);
         masterviewleadingconstraint.constant=-320;
-        masterviewtrailingconstraint.constant=0;
+        masterviewtrailingconstraint.constant=[self scheduleTrailingConstant];
         [self.view layoutIfNeeded];
         supermasterviewbutton.hidden=NO;
     } completion:nil];
@@ -5912,7 +5918,7 @@
         remarksuppopover.preferredContentSize=CGSizeMake(480, self.view.frame.size.height);
 
         
-        remarksuppopover.view.frame=mainWindow.bounds;
+        [self placeViewInSideWindow:remarksuppopover.view];
         [sidewindowview addSubview:remarksuppopover.view];
         [self addChildViewController:remarksuppopover];
         [remarksuppopover didMoveToParentViewController:self];
@@ -5958,7 +5964,7 @@
             return;
         }
         
-        messagepopover.view.frame=self->mainWindow.bounds;
+        [self placeViewInSideWindow:messagepopover.view];
         [self->sidewindowview addSubview:messagepopover.view];
         [self addChildViewController:messagepopover];
         [messagepopover didMoveToParentViewController:self];
@@ -6366,7 +6372,7 @@
         //classpopover.PopoverStudent=DetailsViewStudent;
         makeuppopover.preferredContentSize=CGSizeMake(320, self.view.frame.size.height);
         
-        makeuppopover.view.frame=mainWindow.bounds;
+        [self placeViewInSideWindow:makeuppopover.view];
         [sidewindowview addSubview:makeuppopover.view];
         [self addChildViewController:makeuppopover];
         [makeuppopover didMoveToParentViewController:self];
@@ -6889,7 +6895,7 @@
         documentfolderpopover.defaultcheckedsalesreceiptpaymentkeys=defaultcheckedsalesreceiptpaymentkeys;*/
         documentfolderpopover.menubutton=2;
         
-        documentfolderpopover.view.frame=mainWindow.bounds;
+        [self placeViewInSideWindow:documentfolderpopover.view];
         [sidewindowview addSubview:documentfolderpopover.view];
         [self addChildViewController:documentfolderpopover];
         documentfolderpopover.view.clipsToBounds=YES;
@@ -7407,13 +7413,209 @@
 
 
 
+- (CGFloat)visibleScheduleWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat visibleMaxX = MIN(CGRectGetMaxX(frameInWindow), CGRectGetMaxX(window.bounds));
+    return MAX(MIN(visibleMaxX - CGRectGetMinX(frameInWindow), width), 0);
+}
+
+- (void)layoutDateBarForWidth:(CGFloat)width
+{
+    CGFloat barWidth = MAX(width - 40, 0);
+    CGPoint offset = datebartable.contentOffset;
+    datebartable.transform = CGAffineTransformIdentity;
+    datebartable.frame = CGRectMake(0, 68, barWidth, 40);
+    CGPoint center = datebartable.center;
+    datebartable.frame = CGRectMake(68, 0, 40, barWidth);
+    datebartable.transform = CGAffineTransformMakeRotation(-M_PI_2);
+    datebartable.center = center;
+    datebartable.contentOffset = offset;
+}
+
+- (CGFloat)scheduleTrailingConstant
+{
+    CGFloat overflow = MAX(0, self.view.bounds.size.width - [self visibleScheduleWidth]);
+    BOOL calendarOpen = masterviewleadingconstraint.constant < -1;
+    return (calendarOpen ? 0 : -320) + overflow;
+}
+
+- (void)layoutClassScheduleForCurrentSize
+{
+    CGFloat width = [self visibleScheduleWidth];
+    CGFloat height = self.view.bounds.size.height;
+    if (width < 1 || height < 1 || !headerLabel || !supermasterview) {
+        return;
+    }
+    CGFloat trailing = [self scheduleTrailingConstant];
+    if (masterviewtrailingconstraint && fabs(masterviewtrailingconstraint.constant - trailing) > 0.5) {
+        masterviewtrailingconstraint.constant = trailing;
+    }
+    if (fabs(self.laidOutScheduleWidth - width) < 0.5 && fabs(headerLabel.frame.size.width - width) < 0.5) {
+        [self layoutSideWindowForCurrentSize];
+        return;
+    }
+    self.laidOutScheduleWidth = width;
+    
+    headerLabel.frame = CGRectMake(0, 0, width, 68);
+    sharebutton.frame = CGRectMake(width - 45, 30, 30, 30);
+    scantotakeattendancebutton.frame = CGRectMake(width - 145, 30, 30, 30);
+    editattendancebutton.frame = CGRectMake(width - 90, 34, 24, 24);
+    reloadbutton.frame = CGRectMake(width - 45, 34, 28, 28);
+    ailoadpdf.center = CGPointMake(width - 30, 52);
+    
+    CGFloat titleWidth = MAX(width - 300, 0);
+    headertitleview.frame = CGRectMake(150, 0, titleWidth, 68);
+    headertitlename.frame = CGRectMake(0, 25, titleWidth, 20);
+    switchcenterbutton.frame = CGRectMake(0, 0, titleWidth, 68);
+    [self updateheadercentertitle];
+    
+    CGFloat rightLimit = width - 64;
+    CGFloat designSearchX = ClassTypeSelectionButton.hidden ? 640.0 : 802.0;
+    CGFloat scale = 1;
+    if (rightLimit - designSearchX < 100) {
+        scale = (rightLimit - 100) / designSearchX;
+        if (scale < 0.55) {
+            scale = 0.55;
+        }
+    }
+    ClassSelectionButton.frame = CGRectMake(2 * scale, 110, 250 * scale, 29);
+    InstructorSelectionButton.frame = CGRectMake(254 * scale, 110, 206 * scale, 29);
+    ClassroomSelectionButton.frame = CGRectMake(462 * scale, 110, 176 * scale, 29);
+    ClassTypeSelectionButton.frame = CGRectMake(640 * scale, 110, 160 * scale, 29);
+    CGFloat searchX = designSearchX * scale;
+    search_text.frame = CGRectMake(searchX, 110, MAX(rightLimit - searchX, 80), 29);
+    SortingButton.frame = CGRectMake(width - 62, 110, 29, 29);
+    SelectViewButton.frame = CGRectMake(width - 31, 110, 29, 29);
+    
+    [self layoutDateBarForWidth:width];
+    calendarbutton.frame = CGRectMake(width - 40, 68, 40, 40);
+    supermasterviewbutton.frame = CGRectMake(0, 0, width, height);
+    CGFloat calendarX = supermasterview.bounds.size.width - 320;
+    if (calendarX < width) {
+        calendarX = width;
+    }
+    calendarview.frame = CGRectMake(calendarX, 0, 320, height);
+    
+    [self layoutSideWindowForCurrentSize];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutClassScheduleForCurrentSize];
+}
+
+-(UIWindow *) scheduleSceneWindow
+{
+    if (self.view.window) {
+        return self.view.window;
+    }
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState != UISceneActivationStateForegroundActive && windowScene.activationState != UISceneActivationStateForegroundInactive) {
+            continue;
+        }
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow) {
+                return window;
+            }
+        }
+        if (windowScene.windows.firstObject) {
+            return windowScene.windows.firstObject;
+        }
+    }
+    SceneDelegate *sceneDelegate = (SceneDelegate *)[UIApplication sharedApplication].connectedScenes.anyObject.delegate;
+    return sceneDelegate.window;
+}
+
+-(void) layoutSideWindowForCurrentSize
+{
+    if (!sidewindowview || self.sideWindowAnimating) {
+        return;
+    }
+    UIWindow *window = self.view.window ? self.view.window : mainWindow;
+    if (!window) {
+        return;
+    }
+    if (mainWindow != window) {
+        mainWindow = window;
+        mainviewcontroller = (MainViewController *)[window rootViewController];
+    }
+    if (sidewindowviewclosebutton.superview != window) {
+        [window addSubview:sidewindowviewclosebutton];
+    }
+    if (sidewindowview.superview != window) {
+        [window addSubview:sidewindowview];
+    }
+    sidewindowviewclosebutton.frame = window.bounds;
+    CGFloat windowWidth = window.bounds.size.width;
+    CGFloat windowHeight = window.bounds.size.height;
+    if (!self.sideWindowOpen) {
+        sidewindowview.hidden = YES;
+        sidewindowview.frame = CGRectMake(windowWidth, 0, 0, windowHeight);
+        sidewindowviewclosebutton.hidden = YES;
+        return;
+    }
+    sidewindowview.hidden = NO;
+    NSUInteger panelIndex = [window.subviews indexOfObject:sidewindowview];
+    NSUInteger dimmerIndex = [window.subviews indexOfObject:sidewindowviewclosebutton];
+    if (panelIndex != NSNotFound && dimmerIndex != NSNotFound && panelIndex < dimmerIndex) {
+        [window insertSubview:sidewindowview aboveSubview:sidewindowviewclosebutton];
+    }
+    CGFloat requestedWidth = self.sideWindowRequestedWidth > 0 ? self.sideWindowRequestedWidth : 320.0;
+    CGFloat panelWidth = MIN(requestedWidth, windowWidth);
+    sidewindowview.frame = CGRectMake(windowWidth - panelWidth, 0, panelWidth, windowHeight);
+    for (UIView *subview in sidewindowview.subviews) {
+        if (subview == ailoadindicator) {
+            continue;
+        }
+        subview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        subview.frame = sidewindowview.bounds;
+    }
+    ailoadindicator.center = CGPointMake(sidewindowview.bounds.size.width / 2.0 - 7.5, sidewindowview.bounds.size.height / 2.0 - 7.5);
+}
+
+-(CGFloat) clampedSideWindowWidth:(CGFloat)width
+{
+    if (!mainWindow) {
+        mainWindow = [self scheduleSceneWindow];
+    }
+    if (width <= 0 || !mainWindow || mainWindow.bounds.size.width <= 0) {
+        return 0;
+    }
+    return MIN(width, mainWindow.bounds.size.width);
+}
+
+-(void) placeViewInSideWindow:(UIView *)view
+{
+    view.translatesAutoresizingMaskIntoConstraints = YES;
+    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    view.frame = sidewindowview.bounds;
+    view.clipsToBounds = YES;
+}
+
 -(void) adjustpresentingviewwidthwithwidth:(CGFloat)width
 {
+    if (!mainWindow) {
+        mainWindow = [self scheduleSceneWindow];
+    }
+    if (!mainWindow) {
+        return;
+    }
     if (ailoadindicator.hidden && sidewindowview.frame.origin.x==mainWindow.bounds.size.width) {
         return;
     }
     
-    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x) {
+    if (mainWindow.bounds.size.width-width == sidewindowview.frame.origin.x && fabs(sidewindowview.frame.size.height - mainWindow.bounds.size.height) < 0.5) {
         return;
     }
     
@@ -7421,13 +7623,27 @@
         [MyClass playsoundwithoption:@"open"];
     }
     
+    if (width > 0) {
+        self.sideWindowRequestedWidth = width;
+    }
+    self.sideWindowOpen = width > 0;
+    self.sideWindowAnimating = YES;
     [UIView animateWithDuration:0.25f animations:^{
-        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
+        sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, 0, width, mainWindow.bounds.size.height);
+        for (UIView *subview in sidewindowview.subviews) {
+            if (subview == ailoadindicator) {
+                continue;
+            }
+            subview.frame = sidewindowview.bounds;
+        }
         if (width==0 && sidewindowview.frame.origin.x< mainWindow.bounds.size.width) {
             [MyClass playsoundwithoption:@"close"];
         }
     } completion:^(BOOL finished){
+        self.sideWindowAnimating = NO;
         if (width==0) {
+            self.sideWindowOpen = NO;
+            sidewindowview.hidden = YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];
@@ -7441,6 +7657,7 @@
                 }
             }
         }
+        [self layoutSideWindowForCurrentSize];
     }];
     sidewindowviewclosebutton.hidden=width==0;
     
@@ -7452,6 +7669,8 @@
 
 -(void) closesidewindow
 {
+    self.sideWindowOpen = NO;
+    self.sideWindowRequestedWidth = 0;
     [self adjustpresentingviewwidthwithwidth:0];
     [ClassScheduleTable deselectRowAtIndexPath:[ClassScheduleTable indexPathForSelectedRow] animated:YES];
     
@@ -7460,10 +7679,17 @@
 
 -(void) startsidewindowanimationwithwidth:(float)width
 {
+    if (!mainWindow) {
+        mainWindow = [self scheduleSceneWindow];
+    }
+    self.sideWindowRequestedWidth = width;
+    self.sideWindowOpen = width > 0;
+    sidewindowview.hidden = width <= 0;
+    CGFloat panelWidth = [self clampedSideWindowWidth:width];
     ailoadindicator.hidden=NO;
-    ailoadindicator.center = CGPointMake(width/2-7.5,mainWindow.frame.size.height/2-7.5);
+    ailoadindicator.center = CGPointMake(panelWidth/2-7.5,mainWindow.bounds.size.height/2-7.5);
     [ailoadindicator startAnimating];
-    [self adjustpresentingviewwidthwithwidth:width];
+    [self adjustpresentingviewwidthwithwidth:panelWidth];
 }
 
 -(void) returncalendarselecteddatearray:(NSMutableArray *)selecteddatearray makeuptimearray:(NSArray *)makeuptimearray

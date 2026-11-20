@@ -172,9 +172,12 @@
     [sidewindowviewclosebutton addTarget:self action:@selector(closesidewindow) forControlEvents:UIControlEventTouchUpInside];
     [mainWindow addSubview:sidewindowviewclosebutton];
     
-    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 320, mainWindow.bounds.size.height)];
+    sidewindowview=[[UIView alloc]initWithFrame:CGRectMake(mainWindow.bounds.size.width, 0, 0, mainWindow.bounds.size.height)];
     sidewindowview.backgroundColor=[UIColor systemGroupedBackgroundColor];
     sidewindowview.tag=-200;
+    sidewindowview.hidden=YES;
+    sidewindowview.autoresizingMask=UIViewAutoresizingNone;
+    sidewindowview.clipsToBounds=YES;
     [mainWindow addSubview:sidewindowview];
     
     UIImageView *activityImageView=[[UIImageView alloc]init];
@@ -265,6 +268,7 @@
     if (width>0 && sidewindowview.frame.origin.x== mainWindow.bounds.size.width) {
         [MyClass playsoundwithoption:@"open"];
     }
+    sidewindowview.hidden = width<=0;
     
     [UIView animateWithDuration:0.25f animations:^{
         self->sidewindowview.frame=CGRectMake(mainWindow.bounds.size.width-width, sidewindowview.frame.origin.y, width, sidewindowview.frame.size.height);
@@ -273,6 +277,7 @@
         }
     } completion:^(BOOL finished){
         if (width==0) {
+            sidewindowview.hidden = YES;
             NSArray *viewcontrollers=self.childViewControllers;
             for (int i=0; i<viewcontrollers.count; i++) {
                 UIViewController *viewcontroller=viewcontrollers[i];

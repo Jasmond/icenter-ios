@@ -11,7 +11,7 @@
 
 
 @interface StudentEditViewController ()
-
+@property (nonatomic, assign) BOOL sideSelectionAnimating;
 @end
 
 #define schooltablewidth 350
@@ -46,6 +46,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    MasterView.clipsToBounds = YES;
     globalvariables=[GlobalVariables singleObj];
     mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle: nil];
     self.navigationItem.hidesBackButton = true;
@@ -480,10 +482,93 @@
     
 }
 
+- (CGFloat)visibleEditWidth
+{
+    CGFloat width = self.view.bounds.size.width;
+    UIWindow *window = self.view.window;
+    if (!window || width < 1) {
+        return width;
+    }
+    CGRect frameInWindow = [self.view convertRect:self.view.bounds toView:nil];
+    CGFloat visibleMaxX = MIN(CGRectGetMaxX(frameInWindow), CGRectGetMaxX(window.bounds));
+    return MAX(MIN(visibleMaxX - CGRectGetMinX(frameInWindow), width), 0);
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    [self layoutStudentEditForCurrentSize];
+}
+
+- (void)pinEditSidePanel:(UIView *)panel width:(CGFloat)panelWidth
+{
+    if (!panel) {
+        return;
+    }
+    CGFloat height = sideselectionview.bounds.size.height;
+    panel.frame = CGRectMake(MAX(sideselectionview.bounds.size.width - panelWidth, 0), 0, panelWidth, height);
+    for (UIView *subview in panel.subviews) {
+        CGRect frame = subview.frame;
+        BOOL stretches = [subview isKindOfClass:[UITableView class]] || (frame.origin.y < 1 && frame.size.height > 100);
+        if (stretches) {
+            frame.size.height = MAX(height - frame.origin.y, 0);
+            frame.size.width = panelWidth;
+            subview.frame = frame;
+        }
+    }
+}
+
+// The edit form and its picker panel were sized once from the storyboard.
+// Keep both on the current view so the form fills the window and the panel
+// stays on the trailing edge.
+- (void)layoutStudentEditForCurrentSize
+{
+    CGFloat width = [self visibleEditWidth];
+    CGFloat height = self.view.bounds.size.height;
+    if (width < 1 || height < 1 || !studentTable || !sideselectionview) {
+        return;
+    }
+    CGFloat overflow = MAX(self.view.bounds.size.width - width, 0);
+    for (NSLayoutConstraint *constraint in self.view.constraints) {
+        if (constraint.firstItem == self.view && constraint.firstAttribute == NSLayoutAttributeTrailing && constraint.secondAttribute == NSLayoutAttributeTrailing) {
+            if (fabs(constraint.constant - overflow) > 0.5) {
+                constraint.constant = overflow;
+            }
+        }
+    }
+    BOOL widthChanged = fabs(selfViewWidth - width) > 0.5;
+    selfViewWidth = width;
+    maxcontactperline = (selfViewWidth - 178 - 140 - 20) / contactcellwidth;
+    if (maxcontactperline < 1) {
+        maxcontactperline = 1;
+    }
+    studentTable.frame = CGRectMake(178, 70, MAX(width - 178, 0), MAX(height - keyboardheight - 70, 0));
+    if (self.sideSelectionAnimating) {
+        if (widthChanged) {
+            [studentTable reloadData];
+        }
+        return;
+    }
+    BOOL sideOpen = sideselectionview.frame.origin.x < 1;
+    sideselectionview.frame = CGRectMake(sideOpen ? 0 : width, 70, width, MAX(height - 70, 0));
+    filterviewbutton.frame = sideselectionview.bounds;
+    [self pinEditSidePanel:schoolmasterview width:schooltablewidth];
+    [self pinEditSidePanel:agemasterview width:agetablewidth];
+    [self pinEditSidePanel:grademasterview width:gradetablewidth];
+    [self pinEditSidePanel:preferredlanguagemasterview width:preferredlanguagetablewidth];
+    [self pinEditSidePanel:sourcemasterview width:sourcetablewidth];
+    [self pinEditSidePanel:mediamasterview width:mediatablewidth];
+    [self pinEditSidePanel:extrafield2masterview width:extrafield2tablewidth];
+    [self pinEditSidePanel:dobmasterview width:dobtablewidth];
+    if (widthChanged) {
+        [studentTable reloadData];
+    }
+}
+
 -(void) adjusttablesize
 {
     //if ([globalvariables.leftmenuindex isEqualToString:@"1"]) {
-        studentTable.frame=CGRectMake(178, 70, studentTable.frame.size.width, self.view.frame.size.height-keyboardheight-70);
+        studentTable.frame=CGRectMake(178, 70, MAX([self visibleEditWidth] - 178, 0), MAX(self.view.bounds.size.height - keyboardheight - 70, 0));
     /*}else{
         studentTable.frame=CGRectMake(178, 64, studentTable.frame.size.width, 728-keyboardheight-64+20);
     }*/
@@ -2608,6 +2693,23 @@
     
 }
 
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    NSString *title = [self tableView:tableView titleForHeaderInSection:section];
+    if (title.length == 0) {
+        return nil;
+    }
+    CGFloat headerHeight = [self tableView:tableView heightForHeaderInSection:section];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.bounds.size.width, headerHeight)];
+    header.backgroundColor = [UIColor clearColor];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, MAX(tableView.bounds.size.width - 20, 0), headerHeight)];
+    titleLabel.font = [UIFont systemFontOfSize:15];
+    titleLabel.textColor = [UIColor secondaryLabelColor];
+    titleLabel.text = title;
+    [header addSubview:titleLabel];
+    return header;
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (tableView==studentTable) {
         if (section==2) {
@@ -2769,9 +2871,14 @@
 -(void) closesidewindow
 {
     filterviewbutton.layer.opacity=0;
+    self.sideSelectionAnimating = YES;
+    CGFloat width = [self visibleEditWidth];
+    CGFloat height = MAX(self.view.bounds.size.height - 70, 0);
     [UIView animateWithDuration:0.3f animations:^{
-        self->sideselectionview.frame=CGRectMake(self->sideselectionview.frame.size.width, 70, self->sideselectionview.frame.size.width, self->sideselectionview.frame.size.height);
-    } completion:nil];
+        self->sideselectionview.frame=CGRectMake(width, 70, width, height);
+    } completion:^(BOOL finished) {
+        self.sideSelectionAnimating = NO;
+    }];
     
     [studentTable deselectRowAtIndexPath:[studentTable indexPathForSelectedRow] animated:YES];
 }
@@ -3493,9 +3600,22 @@
 
     
     
+    self.sideSelectionAnimating = YES;
+    CGFloat width = [self visibleEditWidth];
+    CGFloat height = MAX(self.view.bounds.size.height - 70, 0);
+    sideselectionview.frame = CGRectMake(width, 70, width, height);
+    [self pinEditSidePanel:schoolmasterview width:schooltablewidth];
+    [self pinEditSidePanel:agemasterview width:agetablewidth];
+    [self pinEditSidePanel:grademasterview width:gradetablewidth];
+    [self pinEditSidePanel:preferredlanguagemasterview width:preferredlanguagetablewidth];
+    [self pinEditSidePanel:sourcemasterview width:sourcetablewidth];
+    [self pinEditSidePanel:mediamasterview width:mediatablewidth];
+    [self pinEditSidePanel:extrafield2masterview width:extrafield2tablewidth];
+    [self pinEditSidePanel:dobmasterview width:dobtablewidth];
     [UIView animateWithDuration:0.3f animations:^{
-        sideselectionview.frame=CGRectMake(0, 70, sideselectionview.frame.size.width, sideselectionview.frame.size.height);
+        sideselectionview.frame=CGRectMake(0, 70, width, height);
     } completion:^(BOOL finished) {
+        self.sideSelectionAnimating = NO;
         [UIView animateWithDuration:0.2f animations:^{
             filterviewbutton.layer.opacity=0.1;
         } completion:nil];

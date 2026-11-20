@@ -211,6 +211,8 @@
     __weak IBOutlet UILabel *copyrightmessagelabel;
     
     __weak IBOutlet UIView *MasterView;
+    __weak IBOutlet NSLayoutConstraint *masterViewTrailingConstraint;
+    __weak IBOutlet NSLayoutConstraint *masterViewBottomConstraint;
     __weak IBOutlet UILabel *menulabel_lead;
     __weak IBOutlet UILabel *menulabel_messages;
     __weak IBOutlet UILabel *menulabel_calllog;

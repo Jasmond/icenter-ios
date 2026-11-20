@@ -548,7 +548,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         

@@ -165,7 +165,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -1610,7 +1610,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetrow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -1999,7 +1998,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetrow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             

@@ -210,8 +210,7 @@
     
     documentfolderbutton = [UIButton buttonWithType:UIButtonTypeCustom];
     [documentfolderbutton setImage:[UIImage imageNamed:@"documentfolder_icon.png"] forState:UIControlStateNormal];
-    documentfolderbutton.showsTouchWhenHighlighted = YES;
-    [documentfolderbutton setImageEdgeInsets:UIEdgeInsetsMake(6,1,1,6)];
+    [documentfolderbutton applyImageInsets:UIEdgeInsetsMake(6,1,1,6)];
     documentfolderbutton.layer.cornerRadius=5;
     documentfolderbutton.layer.masksToBounds=YES;
     [documentfolderbutton addTarget:self action:@selector(documentfolderbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -276,7 +275,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -2596,8 +2595,7 @@
 
 -(void) showAddToDocumentFolderAnimationWithTableview:(UITableView *)tableView IndexPath:(NSIndexPath *)indexPath
 {
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     
     CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
     CGRect button_CGRect = [tableView convertRect:rectInTableView toView:win0];

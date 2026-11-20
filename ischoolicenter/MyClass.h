@@ -314,6 +314,7 @@
 +(BOOL) classendtimebeyondcenterendtimewithclassstarttime:(NSString *)classstarttime duration:(NSInteger)duration;
 +(void) loadHourPickerViewMenu:(NSMutableArray *)hourPickerViewMenu;
 +(float) returnTimeTableNoOfTimeSlotWithCellDuration:(float)cellduration;
++(UIWindow *)activeWindow;
 +(void) logoutUser;
 +(void) reloadApp;
 +(NSString *) returnMessageTimeWithMessageStartTime:(NSString *)messagestarttime;
@@ -419,4 +420,9 @@
 + (NSData *)compressVideoSynchronouslyWithURL:(NSURL *)inputURL error:(NSError **)error;
 +(BOOL) getMaxUploadFileSizeWithCenterkey:(NSString *)centerkey;
 
+@end
+
+@interface UIButton (TitleInsets)
+- (void)applyTitleInsets:(UIEdgeInsets)insets;
+- (void)applyImageInsets:(UIEdgeInsets)insets;
 @end

@@ -187,7 +187,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -639,7 +639,7 @@
     
     UIButton *csResetClassDateButton=[[UIButton alloc]initWithFrame:CGRectMake(instructortablewidth-40, 12, 30, 30)];
     [csResetClassDateButton setImage:[UIImage imageNamed:@"closescreen_blue"] forState:UIControlStateNormal];
-    [csResetClassDateButton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [csResetClassDateButton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [csResetClassDateButton addTarget: self action:@selector(ResetClassDateButtonPressed) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:csResetClassDateButton];
     
@@ -786,7 +786,7 @@
     
     DLStartDateTimeCarryOverButton=[[UIButton alloc]initWithFrame:CGRectMake(dlclassroomtablewidth-35, 12, 30, 30)];
     [DLStartDateTimeCarryOverButton setImage:[UIImage imageNamed:@"carryoverbutton.png"] forState:UIControlStateNormal];
-    [DLStartDateTimeCarryOverButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [DLStartDateTimeCarryOverButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [DLStartDateTimeCarryOverButton addTarget: self action:@selector(DLCarryOverButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:DLStartDateTimeCarryOverButton];
     
@@ -829,13 +829,13 @@
     
     DLSelectInstructorButton=[[UIButton alloc]initWithFrame:CGRectMake(dlinstructortablewidth-35-50, 12, 30, 30)];
     [DLSelectInstructorButton setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-    [DLSelectInstructorButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [DLSelectInstructorButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     //[DLSelectInstructorButton addTarget: self action:@selector(DLInstructorButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:DLSelectInstructorButton];
     
     DLInstructorCarryOverButton=[[UIButton alloc]initWithFrame:CGRectMake(dlclassroomtablewidth-35, 12, 30, 30)];
     [DLInstructorCarryOverButton setImage:[UIImage imageNamed:@"carryoverbutton.png"] forState:UIControlStateNormal];
-    [DLInstructorCarryOverButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [DLInstructorCarryOverButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [DLInstructorCarryOverButton addTarget: self action:@selector(DLCarryOverButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:DLInstructorCarryOverButton];
     
@@ -876,7 +876,7 @@
     
     DLClassroomCarryOverButton=[[UIButton alloc]initWithFrame:CGRectMake(dlclassroomtablewidth-35, 12, 30, 30)];
     [DLClassroomCarryOverButton setImage:[UIImage imageNamed:@"carryoverbutton.png"] forState:UIControlStateNormal];
-    [DLClassroomCarryOverButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [DLClassroomCarryOverButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [DLClassroomCarryOverButton addTarget: self action:@selector(DLCarryOverButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:DLClassroomCarryOverButton];
     
@@ -4628,7 +4628,6 @@
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
                         }
 
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         [cell.contentView addSubview:datepickerview];
@@ -4757,7 +4756,6 @@
                         
 
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4828,7 +4826,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -5049,7 +5046,6 @@
                           myPicker.tag=802;
                           
                           [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                          [myPicker setShowsSelectionIndicator:YES];
                           myPickerView=myPicker;
                           [datepickerview addSubview:myPicker];
                           
@@ -5123,7 +5119,6 @@
                         myPicker.tag=805;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -5426,7 +5421,6 @@
                             if(![workingEnrollment.enrollmentmode isEqualToString:@""]){
                                 [myPicker selectRow:enrollmentmodepresetrow inComponent:1 animated:NO];
                             }
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -5965,7 +5959,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -6238,7 +6231,6 @@
                 myPicker.tag=802;
                 
                 [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [datepickerview addSubview:myPicker];
                 
@@ -6862,8 +6854,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(scheduletablewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }else{
@@ -6890,8 +6882,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(scheduletablewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }
@@ -6989,8 +6981,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(scheduletablewidth-23-8, 10+i*rowheight-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -7072,8 +7064,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(scheduletablewidth-23-8, 10+i*rowheight-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -7454,7 +7446,6 @@
         
 
         
-        [myPicker setShowsSelectionIndicator:YES];
         myPickerView=myPicker;
         [cell.contentView addSubview:myPicker];
         
@@ -8105,7 +8096,6 @@
                 [myPicker selectRow:hourPresetRow inComponent:1 animated:NO];
                 [myPicker selectRow:minutePresetRow inComponent:2 animated:NO];
                 
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [datepickerview addSubview:myPicker];
                 
@@ -8133,7 +8123,6 @@
                 [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
                 [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
                 
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [cell.contentView addSubview:myPicker];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -8241,7 +8230,7 @@
             [shareimage setImage:[UIImage imageNamed:@"print_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareprint.alpha = 1.0;
             aishareprint.center = CGPointMake(160,19);
             aishareprint.hidesWhenStopped = YES;
@@ -8264,7 +8253,7 @@
             [shareimage setImage:[UIImage imageNamed:@"messagegray_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aisendmessage = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aisendmessage = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aisendmessage.alpha = 1.0;
             aisendmessage.center = CGPointMake(160,19);
             aisendmessage.hidesWhenStopped = YES;
@@ -8286,7 +8275,7 @@
             [shareimage setImage:[UIImage imageNamed:@"email2_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareemail.alpha = 1.0;
             aishareemail.center = CGPointMake(160,19);
             aishareemail.hidesWhenStopped = YES;
@@ -8324,7 +8313,7 @@
             [shareimage setImage:[UIImage imageNamed:@"more_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareothers.alpha = 1.0;
             aishareothers.center = CGPointMake(160,19);
             aishareothers.hidesWhenStopped = YES;
@@ -10491,8 +10480,8 @@
                 [header addSubview:label];
                 
                 UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton addTarget:self action:@selector(showpromotioncode:) forControlEvents:UIControlEventTouchUpInside];
                 [header addSubview:showpromotioncodebutton];
                 showpromotioncodebutton.hidden=[DiscountTableMode isEqualToString:@"View"] || !((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscount || [self hasLockedClass] || [PopoverEnrollment.status isEqualToString:@"Voided"]|| (!((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscountifpaid && [PopoverEnrollment.paid floatValue]!=0&& ![EnrollmentTableMode isEqualToString:@"Renewal"]);
@@ -10510,8 +10499,8 @@
                 [header addSubview:label];
                 
                 UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton addTarget:self action:@selector(showavailablecoupon:) forControlEvents:UIControlEventTouchUpInside];
                 [header addSubview:showpromotioncodebutton];
                 showpromotioncodebutton.hidden=[DiscountTableMode isEqualToString:@"View"]|| !((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).applycoupon || [self hasLockedClass] || [PopoverEnrollment.status isEqualToString:@"Voided"];
@@ -15777,7 +15766,6 @@
     info.jobName=@"iSchool.pdf";
     info.duplex=UIPrintInfoDuplexLongEdge;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;
@@ -16839,8 +16827,7 @@
                 attendancebuttonarray=[[NSMutableArray alloc]initWithArray:[MyClass returnabsentattendancebuttonarray]];
                 attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).attendance highlightbutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).attendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
                 
-                NSArray * windows = [[UIApplication sharedApplication] windows];
-                UIWindow* win0 = [windows objectAtIndex:0];
+                UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
                 
                 [win0 addSubview:attendanceringview];
                 [win0 bringSubviewToFront:attendanceringview];
@@ -16857,8 +16844,7 @@
                 attendancebuttonarray=[[NSMutableArray alloc]initWithArray:regularattendancebuttonarray];
                 attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).attendance highlightbutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).attendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
                 
-                NSArray * windows = [[UIApplication sharedApplication] windows];
-                UIWindow* win0 = [windows objectAtIndex:0];
+                UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
                 
                 [win0 addSubview:attendanceringview];
                 [win0 bringSubviewToFront:attendanceringview];
@@ -16888,8 +16874,7 @@
                 attendancebuttonarray=[[NSMutableArray alloc]initWithArray:[MyClass returnmakeupabsentattendancebuttonarray]];
                 attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).makeupattendance highlightbutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).makeupattendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
                 
-                NSArray * windows = [[UIApplication sharedApplication] windows];
-                UIWindow* win0 = [windows objectAtIndex:0];
+                UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
                 
                 [win0 addSubview:attendanceringview];
                 [win0 bringSubviewToFront:attendanceringview];
@@ -16905,8 +16890,7 @@
                 attendancebuttonarray=[[NSMutableArray alloc]initWithArray:makeupattendancebuttonarray];
                 attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).makeupattendance highlightbutton:((FreeScheduleClass *)[FreeScheduleClassArray objectAtIndex:indexpath.row]).makeupattendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
                 
-                NSArray * windows = [[UIApplication sharedApplication] windows];
-                UIWindow* win0 = [windows objectAtIndex:0];
+                UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
                 
                 [win0 addSubview:attendanceringview];
                 [win0 bringSubviewToFront:attendanceringview];

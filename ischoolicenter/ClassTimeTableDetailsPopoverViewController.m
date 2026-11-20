@@ -67,7 +67,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -736,11 +736,11 @@
         }
         
         //attendance button
-        [cell.button3 setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
         [cell.button3 addTarget: self action:@selector(attendancebuttontouchupinside:) forControlEvents: UIControlEventTouchUpInside];
         [cell.button3 addTarget: self action:@selector(attendancebuttontouchdown:) forControlEvents: UIControlEventTouchDown];
         cell.button3.tag=indexPath.row;
         [cell.button3 setImage:[UIImage imageNamed:[MyClass returnattendanceimagewithclasstype:ClassScheduleObject.classtype attendance:ClassScheduleObject.attendance makeupattendance:ClassScheduleObject.makeupattendance]] forState:UIControlStateNormal];
+        [cell.button3 applyImageInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
         cell.button3.enabled=![MyClass classLocked:ClassScheduleObject.locked];
         
 //        if ([viewmode isEqualToString:@"lesson"]) {

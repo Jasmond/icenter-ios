@@ -260,7 +260,7 @@
     
     individualimagebutton=[[UIButton alloc]initWithFrame:CGRectMake(IndividualTableMasterView.frame.size.width-44, 4, 40, 40)];
     [individualimagebutton setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-    [individualimagebutton setImageEdgeInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
+    [individualimagebutton applyImageInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
     [individualimagebutton addTarget: self action:@selector(ImageButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:individualimagebutton];
     
@@ -3344,7 +3344,6 @@
         [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
         [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
         
-        [myPicker setShowsSelectionIndicator:YES];
         myPickerView=myPicker;
         [cell.contentView addSubview:myPicker];
         

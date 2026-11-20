@@ -2769,7 +2769,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -2828,7 +2827,6 @@
                         [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
                         [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [cell.contentView addSubview:myPicker];
                     }else{
@@ -2872,7 +2870,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3094,7 +3091,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -3157,7 +3153,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -3208,7 +3203,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -4675,8 +4669,7 @@
     attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:workingATObject.attendance highlightbutton:workingATObject.attendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
 
     
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     
     [win0 addSubview:attendanceringview];
     [win0 bringSubviewToFront:attendanceringview];

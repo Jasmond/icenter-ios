@@ -9355,7 +9355,7 @@
                                     
                                     
                                     dispatch_async(dispatch_get_main_queue(), ^{
-                                        UIWindow *window =[[UIApplication sharedApplication] keyWindow];
+                                        UIWindow *window = [MyClass activeWindow];
                                         MainViewController *mainviewcontroller = (MainViewController*) [window rootViewController];
                                         [mainviewcontroller logoutapp];
                                         if (completionBlock) {
@@ -12032,7 +12032,7 @@
     GlobalVariables *globalvariables=[GlobalVariables singleObj];
     if (passwordresetted) {
         
-        UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
+        UIViewController *topController = [MyClass activeWindow].rootViewController;
         
         while (topController.presentedViewController) {
             topController = topController.presentedViewController;
@@ -15615,32 +15615,46 @@
     }
 }
 
++(UIWindow *)activeWindow
+{
+    UIWindow *activeWindow = nil;
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow) {
+                return window;
+            }
+        }
+        if (!activeWindow && windowScene.windows.count > 0) {
+            activeWindow = windowScene.windows.firstObject;
+        }
+    }
+    return activeWindow;
+}
+
 +(void) logoutUser
 {
-
-    UIWindow *window =[[UIApplication sharedApplication] keyWindow];
+    UIWindow *window = [MyClass activeWindow];
     MainViewController *mainviewcontroller = (MainViewController*) [window rootViewController];
     [mainviewcontroller logoutapp];
-    
 }
 
 +(void) reloadApp
 {
-    UIWindow *window =[[UIApplication sharedApplication] keyWindow];
+    UIWindow *window = [MyClass activeWindow];
     MainViewController *mainviewcontroller = (MainViewController*) [window rootViewController];
-
     [mainviewcontroller reloadapp];
-    
-
 }
 
 +(void) resetPassword
 {
-    UIWindow *window =[[UIApplication sharedApplication] keyWindow];
+    UIWindow *window = [MyClass activeWindow];
     MainViewController *mainviewcontroller = (MainViewController*) [window rootViewController];
     [mainviewcontroller logoutapp];
     [mainviewcontroller initializedpassword:NO];
-    
 }
 
 +(NSString *) returnMessageTimeWithMessageStartTime:(NSString *)messagestarttime
@@ -16762,7 +16776,7 @@
 
 + (UIViewController*) topMostController
 {
-    UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
+    UIViewController *topController = [MyClass activeWindow].rootViewController;
 
     while (topController.presentedViewController && ![topController.presentedViewController isKindOfClass:[SwitchCenterViewController class]]) {
         topController = topController.presentedViewController;
@@ -18542,6 +18556,63 @@
     }else{
         return videoData;
     }
+}
+
+@end
+
+@implementation UIButton (TitleInsets)
+
+- (void)applyTitleInsets:(UIEdgeInsets)insets
+{
+    UIButtonConfiguration *config = [UIButtonConfiguration plainButtonConfiguration];
+    config.contentInsets = NSDirectionalEdgeInsetsMake(insets.top, insets.left, insets.bottom, insets.right);
+    config.title = [self titleForState:UIControlStateNormal];
+    UIColor *titleColor = [self titleColorForState:UIControlStateNormal];
+    if (titleColor) {
+        config.baseForegroundColor = titleColor;
+    }
+    config.background.backgroundColor = self.backgroundColor ?: [UIColor clearColor];
+    config.background.cornerRadius = self.layer.cornerRadius;
+    UIFont *font = self.titleLabel.font;
+    if (font) {
+        config.titleTextAttributesTransformer = ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
+            NSMutableDictionary *attrs = [incoming mutableCopy];
+            attrs[NSFontAttributeName] = font;
+            return attrs;
+        };
+    }
+    switch (self.contentHorizontalAlignment) {
+        case UIControlContentHorizontalAlignmentLeft:
+        case UIControlContentHorizontalAlignmentLeading:
+            config.titleAlignment = UIButtonConfigurationTitleAlignmentLeading;
+            break;
+        case UIControlContentHorizontalAlignmentRight:
+        case UIControlContentHorizontalAlignmentTrailing:
+            config.titleAlignment = UIButtonConfigurationTitleAlignmentTrailing;
+            break;
+        default:
+            config.titleAlignment = UIButtonConfigurationTitleAlignmentCenter;
+            break;
+    }
+    self.configuration = config;
+}
+
+- (void)applyImageInsets:(UIEdgeInsets)insets
+{
+    UIImage *source = [self imageForState:UIControlStateNormal];
+    CGSize canvas = self.bounds.size;
+    CGFloat width = canvas.width - insets.left - insets.right;
+    CGFloat height = canvas.height - insets.top - insets.bottom;
+    if (!source || width < 1.0 || height < 1.0) {
+        return;
+    }
+    UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat formatForTraitCollection:self.traitCollection];
+    format.opaque = NO;
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:canvas format:format];
+    UIImage *padded = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+        [source drawInRect:CGRectMake(insets.left, insets.top, width, height)];
+    }];
+    [self setImage:[padded imageWithRenderingMode:source.renderingMode] forState:UIControlStateNormal];
 }
 
 @end

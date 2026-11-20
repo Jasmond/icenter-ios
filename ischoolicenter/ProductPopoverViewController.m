@@ -883,7 +883,6 @@
             [myPicker selectRow:valuePresetRow inComponent:0 animated:NO];
             [myPicker selectRow:typePresetRow inComponent:1 animated:NO];
             
-            [myPicker setShowsSelectionIndicator:YES];
             myPickerView=myPicker;
             [datepickerview addSubview:myPicker];
             

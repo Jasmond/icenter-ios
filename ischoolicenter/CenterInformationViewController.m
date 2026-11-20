@@ -442,7 +442,7 @@
     activityImageView.frame=CGRectMake(-10,-10,60,60);
     [activityImageView startAnimating];
     
-    ailoadclass = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    ailoadclass = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
     ailoadclass.alpha = 1.0;
     ailoadclass.color=[UIColor clearColor];
     ailoadclass.transform=CGAffineTransformMakeScale(1, 1);
@@ -458,7 +458,7 @@
     activityImageViewContactus.frame=CGRectMake(-10,-10,60,60);
     [activityImageViewContactus startAnimating];
     
-    aicontactus = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    aicontactus = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
     aicontactus.alpha = 1.0;
     aicontactus.color=[UIColor clearColor];
     aicontactus.transform=CGAffineTransformMakeScale(1, 1);
@@ -511,7 +511,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -3966,7 +3966,6 @@
             [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
             [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
             
-            [myPicker setShowsSelectionIndicator:YES];
             //myPickerView=myPicker;
             [cell.contentView addSubview:myPicker];
             
@@ -4340,13 +4339,13 @@
             
             UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(policytable.frame.size.width-90, 10, 30, 30)];
             [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
-            [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
+            [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
             deletebutton.tag=section;
             [deletebutton addTarget:self action:@selector(policy_deletesectionbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
             
             UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(deletebutton.frame.origin.x+30+10, 10, 30, 30)];
             [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
-            [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
+            [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
             addbutton.tag=section;
             [addbutton addTarget:self action:@selector(policy_addsectionbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
             
@@ -8611,7 +8610,7 @@
     //addbutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     addbutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [addbutton setImage:[UIImage imageNamed:@"addbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    addbutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [addbutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [addbutton addTarget:self action:@selector(addgroup:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:addbutton];
     
@@ -8619,7 +8618,7 @@
     //deletebutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     deletebutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [deletebutton setImage:[UIImage imageNamed:@"minusbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    deletebutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [deletebutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [deletebutton addTarget:self action:@selector(deletegroup:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:deletebutton];
     
@@ -8788,7 +8787,7 @@
     //addbutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     addbutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [addbutton setImage:[UIImage imageNamed:@"addbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    addbutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [addbutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [addbutton addTarget:self action:@selector(addprivilege:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:addbutton];
     
@@ -8796,7 +8795,7 @@
     //deletebutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     deletebutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [deletebutton setImage:[UIImage imageNamed:@"minusbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    deletebutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [deletebutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [deletebutton addTarget:self action:@selector(deleteprivilege:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:deletebutton];
     
@@ -9212,11 +9211,11 @@
     frominstructorbutton.layer.cornerRadius=5;
     frominstructorbutton.layer.masksToBounds=YES;
     frominstructorbutton.tag=0;
-    [frominstructorbutton setTitleEdgeInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     frominstructorbutton.titleLabel.font=[UIFont systemFontOfSize:20];
     frominstructorbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeft;
     [frominstructorbutton addTarget:self action:@selector(ri_instructorbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
     [frominstructorbutton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+    [frominstructorbutton applyTitleInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     [ri_instructorview addSubview:frominstructorbutton];
 
     toinstructorbutton=[[UIButton alloc]initWithFrame:CGRectMake(frominstructorbutton.frame.origin.x, frominstructorbutton.frame.origin.y+45, frominstructorbutton.frame.size.width, frominstructorbutton.frame.size.height)];
@@ -9225,11 +9224,11 @@
     toinstructorbutton.layer.cornerRadius=5;
     toinstructorbutton.layer.masksToBounds=YES;
     toinstructorbutton.tag=1;
-    [toinstructorbutton setTitleEdgeInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     toinstructorbutton.titleLabel.font=[UIFont systemFontOfSize:20];
     toinstructorbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeft;
     [toinstructorbutton addTarget:self action:@selector(ri_instructorbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
     [toinstructorbutton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+    [toinstructorbutton applyTitleInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     [ri_instructorview addSubview:toinstructorbutton];
     
     image=[[UIImageView alloc]initWithFrame:CGRectMake(15, frominstructorbutton.frame.origin.y+5, 25, 25)];
@@ -9276,10 +9275,10 @@
     dayoptionbutton.titleLabel.font=[UIFont systemFontOfSize:15];
     dayoptionbutton.layer.cornerRadius=5;
     dayoptionbutton.layer.masksToBounds=YES;
-    [dayoptionbutton setTitleEdgeInsets:UIEdgeInsetsMake(2, 5, 2, 5)];
     dayoptionbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentCenter;
     [dayoptionbutton addTarget:self action:@selector(ri_periodbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
     [dayoptionbutton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+    [dayoptionbutton applyTitleInsets:UIEdgeInsetsMake(2, 5, 2, 5)];
     [ri_periodview addSubview:dayoptionbutton];
     
     separator=[[UIView alloc]initWithFrame:CGRectMake(15, 40, ri_periodview.frame.size.width-15, 2)];
@@ -9294,11 +9293,11 @@
     fromperiodbutton.backgroundColor=[UIColor whiteColor];
     fromperiodbutton.layer.cornerRadius=5;
     fromperiodbutton.layer.masksToBounds=YES;
-    [fromperiodbutton setTitleEdgeInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     fromperiodbutton.titleLabel.font=[UIFont systemFontOfSize:20];
     fromperiodbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeft;
     [fromperiodbutton addTarget:self action:@selector(ri_periodbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
     [fromperiodbutton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+    [fromperiodbutton applyTitleInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     [ri_periodview addSubview:fromperiodbutton];
     
     toperiodbutton=[[UIButton alloc]initWithFrame:CGRectMake(fromperiodbutton.frame.origin.x, fromperiodbutton.frame.origin.y+45, fromperiodbutton.frame.size.width, fromperiodbutton.frame.size.height)];
@@ -9307,11 +9306,11 @@
     toperiodbutton.backgroundColor=[UIColor whiteColor];
     toperiodbutton.layer.cornerRadius=5;
     toperiodbutton.layer.masksToBounds=YES;
-    [toperiodbutton setTitleEdgeInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     toperiodbutton.titleLabel.font=[UIFont systemFontOfSize:20];
     toperiodbutton.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeft;
     [toperiodbutton addTarget:self action:@selector(ri_periodbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
     [toperiodbutton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+    [toperiodbutton applyTitleInsets:UIEdgeInsetsMake(5, 10, 5, 10)];
     [ri_periodview addSubview:toperiodbutton];
     
     
@@ -9329,14 +9328,14 @@
     
     clearfromperiodbutton=[[UIButton alloc]initWithFrame:CGRectMake(fromperiodbutton.frame.size.width-35, 0, 35, 35)];
     [clearfromperiodbutton setImage:[UIImage imageNamed:@"closescreen_blue.png"] forState:UIControlStateNormal];
-    [clearfromperiodbutton setImageEdgeInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
+    [clearfromperiodbutton applyImageInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
     clearfromperiodbutton.tag=0;
     [clearfromperiodbutton addTarget:self action:@selector(clearriperiod:) forControlEvents:UIControlEventTouchUpInside];
     [fromperiodbutton addSubview:clearfromperiodbutton];
 
     cleartoperiodbutton=[[UIButton alloc]initWithFrame:CGRectMake(toperiodbutton.frame.size.width-35, 0, 35, 35)];
     [cleartoperiodbutton setImage:[UIImage imageNamed:@"closescreen_blue.png"] forState:UIControlStateNormal];
-    [cleartoperiodbutton setImageEdgeInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
+    [cleartoperiodbutton applyImageInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
     cleartoperiodbutton.tag=1;
     cleartoperiodbutton.hidden=YES;
     [cleartoperiodbutton addTarget:self action:@selector(clearriperiod:) forControlEvents:UIControlEventTouchUpInside];
@@ -9386,7 +9385,7 @@
     //addbutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     addbutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [addbutton setImage:[UIImage imageNamed:@"addbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    addbutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [addbutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [addbutton addTarget:self action:@selector(addprivilege:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:addbutton];
     
@@ -9394,7 +9393,7 @@
     //deletebutton.backgroundColor=[UIColor colorWithRed:29.0/255.0 green:87.0/255.0 blue:150.0/255.0 alpha:1.0];
     deletebutton.titleLabel.textAlignment=NSTextAlignmentCenter;
     [deletebutton setImage:[UIImage imageNamed:@"minusbuttonwhite_icon.png"] forState:UIControlStateNormal];
-    deletebutton.imageEdgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
+    [deletebutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [deletebutton addTarget:self action:@selector(deleteprivilege:) forControlEvents:UIControlEventTouchUpInside];
     [separator addSubview:deletebutton];
     
@@ -9866,7 +9865,7 @@
             
             deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(categorytext.frame.origin.x-10, categorytext.frame.origin.y-10, 20, 20)];
             [deletebutton setImage:[UIImage imageNamed:@"deletebutton2.png"] forState:UIControlStateNormal];
-            [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
+            [deletebutton applyImageInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
             deletebutton.tag=8000+i;
             [deletebutton addTarget:self action:@selector(policy_deletecategorybuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
             [generalPolicyView addSubview:deletebutton];
@@ -9874,7 +9873,7 @@
             if (policycategory.count<5) {
                 addbutton=[[UIButton alloc]initWithFrame:CGRectMake(categorytext.frame.origin.x+categorytext.frame.size.width-10, categorytext.center.y-10, 20, 20)];
                 [addbutton setImage:[UIImage imageNamed:@"addphonebutton2.png"] forState:UIControlStateNormal];
-                [addbutton setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
+                [addbutton applyImageInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
                 addbutton.tag=9000+i;
                 [addbutton addTarget:self action:@selector(policy_addcategorybuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
                 [generalPolicyView addSubview:addbutton];

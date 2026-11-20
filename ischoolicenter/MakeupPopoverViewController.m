@@ -146,7 +146,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -281,8 +281,7 @@
     attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:workingClass.makeupattendance highlightbutton:workingClass.makeupattendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"small"];
     
     
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     
     [win0 addSubview:attendanceringview];
     [win0 bringSubviewToFront:attendanceringview];
@@ -406,7 +405,7 @@
     
     UIButton *instructorimage=[[UIButton alloc]initWithFrame:CGRectMake(InstructorTableMasterView.frame.size.width-44, 4, 40, 40)];
     [instructorimage setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-    [instructorimage setImageEdgeInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
+    [instructorimage applyImageInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
     [instructorimage addTarget: self action:@selector(InstructorButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     //[headerView addSubview:instructorimage];
     
@@ -1172,14 +1171,13 @@
                         [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
                         [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [cell.contentView addSubview:myPicker];
                         
                         
                         UIButton *timetablebutton=[[UIButton alloc]initWithFrame:CGRectMake(15, 162-30, 40, 30)];
-                        [timetablebutton setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 2, 12)];
                         [timetablebutton setImage:[UIImage imageNamed:@"classtimetable_rounded_icon.png"] forState:UIControlStateNormal];
+                        [timetablebutton applyImageInsets:UIEdgeInsetsMake(2, 2, 2, 12)];
                         [timetablebutton addTarget: self action:@selector(timetableButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
                         timetablebutton.tag=702;
                         [cell.contentView addSubview:timetablebutton];
@@ -1193,7 +1191,6 @@
                             
                             [myPicker selectRow:[self returnTimeIndex] inComponent:0 animated:NO];
                             
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [cell.contentView addSubview:myPicker];
                         }else{

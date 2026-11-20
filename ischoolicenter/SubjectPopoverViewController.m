@@ -335,7 +335,7 @@
     
     csSelectInstructorButton=[[UIButton alloc]initWithFrame:CGRectMake(instructortablewidth-35, 12, 30, 30)];
     [csSelectInstructorButton setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-    [csSelectInstructorButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [csSelectInstructorButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [csSelectInstructorButton addTarget: self action:@selector(InstructorButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     //[headerView addSubview:csSelectInstructorButton];
     
@@ -394,7 +394,7 @@
     
     UIButton *csResetClassDateButton=[[UIButton alloc]initWithFrame:CGRectMake(instructortablewidth-40, 12, 30, 30)];
     [csResetClassDateButton setImage:[UIImage imageNamed:@"closescreen_blue"] forState:UIControlStateNormal];
-    [csResetClassDateButton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [csResetClassDateButton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [csResetClassDateButton addTarget: self action:@selector(ResetClassDateButtonPressed) forControlEvents: UIControlEventTouchUpInside];
     [headerView addSubview:csResetClassDateButton];
     
@@ -3279,7 +3279,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3347,7 +3346,6 @@
                         
                         [myPicker selectRow:standardnoofclassormonthpresetrow inComponent:0 animated:NO];
                         [myPicker selectRow:enrollmentmodepresetrow inComponent:1 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3396,7 +3394,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3445,7 +3442,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3494,7 +3490,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3539,7 +3534,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3584,7 +3578,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -3628,7 +3621,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4085,7 +4077,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4157,7 +4148,6 @@
                         
                         [myPicker selectRow:standardnoofclassormonthpresetrow inComponent:0 animated:NO];
                         [myPicker selectRow:enrollmentmodepresetrow inComponent:1 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4210,7 +4200,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4263,7 +4252,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4316,7 +4304,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4365,7 +4352,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4414,7 +4400,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4464,7 +4449,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -4829,8 +4813,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }else{
@@ -4857,8 +4841,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }
@@ -4956,8 +4940,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-23-8, 10+i*rowheight-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -5039,8 +5023,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-23-8, 10+i*rowheight-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -5622,8 +5606,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }else{
@@ -5650,8 +5634,8 @@
                         
                         // add add button
                         UIButton *addbutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-25-7, 10-5, 25, 25)];
-                        [addbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [addbutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                         [addbutton addTarget: self action:@selector(addtimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                         [cell.contentView addSubview:addbutton];
                     }
@@ -5749,8 +5733,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-23-8, 10+i*rowheight-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -5832,8 +5816,8 @@
                             // add delete button
                             if (workingSchedule.daytimearray.count>1) {
                                 UIButton *deletebutton=[[UIButton alloc]initWithFrame:CGRectMake(courseschedulewidth-23-8, 10+i*30-5, 23, 23)];
-                                [deletebutton setImageEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton setImage:[UIImage imageNamed:@"deletebutton.png"] forState:UIControlStateNormal];
+                                [deletebutton applyImageInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
                                 [deletebutton addTarget: self action:@selector(deletetimebuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
                                 deletebutton.tag=80000+i;
                                 [cell.contentView addSubview:deletebutton];
@@ -5863,7 +5847,6 @@
                             [myPicker selectRow:hourPresetRow inComponent:1 animated:NO];
                             [myPicker selectRow:minutePresetRow inComponent:2 animated:NO];
                             
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -5898,7 +5881,6 @@
                             [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
                             [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
                             
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [cell.contentView addSubview:myPicker];
                         }else{
@@ -6358,7 +6340,6 @@
             [myPicker selectRow:valuePresetRow inComponent:0 animated:NO];
             [myPicker selectRow:typePresetRow inComponent:1 animated:NO];
             
-            [myPicker setShowsSelectionIndicator:YES];
             myPickerView=myPicker;
             [datepickerview addSubview:myPicker];
             
@@ -7234,7 +7215,6 @@
                         myPicker.tag=802;
                         
                         [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                        [myPicker setShowsSelectionIndicator:YES];
                         myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         
@@ -7478,7 +7458,6 @@
                 [myPicker selectRow:hourPresetRow inComponent:1 animated:NO];
                 [myPicker selectRow:minutePresetRow inComponent:2 animated:NO];
                 
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [datepickerview addSubview:myPicker];
                 
@@ -7506,7 +7485,6 @@
                 [myPicker selectRow:hourPresetRow inComponent:0 animated:NO];
                 [myPicker selectRow:minutePresetRow inComponent:1 animated:NO];
                 
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [cell.contentView addSubview:myPicker];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;

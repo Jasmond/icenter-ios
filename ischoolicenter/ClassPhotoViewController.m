@@ -172,7 +172,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -1485,20 +1485,18 @@
 
 -(void) searchbuttonpressed
 {
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:0.3];
-    searchbarview.frame=CGRectMake(0, 0, [self visibleClassPhotoWidth], 68);
-    [UIView commitAnimations];
+    [UIView animateWithDuration:0.3 animations:^{
+        searchbarview.frame=CGRectMake(0, 0, [self visibleClassPhotoWidth], 68);
+    }];
     [search_text becomeFirstResponder];
 }
 
 -(void) search_cancel
 {
     [self.view endEditing:YES];
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:0.3];
-    searchbarview.frame=CGRectMake(0, -68, [self visibleClassPhotoWidth], 68);
-    [UIView commitAnimations];
+    [UIView animateWithDuration:0.3 animations:^{
+        searchbarview.frame=CGRectMake(0, -68, [self visibleClassPhotoWidth], 68);
+    }];
     
     [search_favouritebutton setImage:[UIImage imageNamed:@"photofavouritebutton_white.png"] forState:UIControlStateNormal];
     ClassPhotoRecordArraySearchResult=[[NSMutableArray alloc]initWithArray:ClassPhotoRecordArray];

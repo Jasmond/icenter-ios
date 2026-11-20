@@ -152,9 +152,8 @@
     
     documentfolderbutton = [UIButton buttonWithType:UIButtonTypeCustom];
     [documentfolderbutton setImage:[UIImage imageNamed:@"documentfolder_icon.png"] forState:UIControlStateNormal];
-    documentfolderbutton.showsTouchWhenHighlighted = YES;
     documentfolderbutton.frame = CGRectMake(60, 28, 30,30);
-    [documentfolderbutton setImageEdgeInsets:UIEdgeInsetsMake(6,1,1,6)];
+    [documentfolderbutton applyImageInsets:UIEdgeInsetsMake(6,1,1,6)];
     documentfolderbutton.layer.cornerRadius=5;
     documentfolderbutton.layer.masksToBounds=YES;
     [documentfolderbutton.heightAnchor constraintEqualToConstant:30].active = true;
@@ -201,7 +200,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -2632,7 +2631,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -2698,7 +2696,6 @@
                             myPicker.tag=805;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             self.myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -3328,7 +3325,7 @@
             [shareimage setImage:[UIImage imageNamed:@"print_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareprint.alpha = 1.0;
             aishareprint.center = CGPointMake(160,19);
             aishareprint.hidesWhenStopped = YES;
@@ -3351,7 +3348,7 @@
             [shareimage setImage:[UIImage imageNamed:@"email2_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareemail.alpha = 1.0;
             aishareemail.center = CGPointMake(160,19);
             aishareemail.hidesWhenStopped = YES;
@@ -3372,7 +3369,7 @@
             [shareimage setImage:[UIImage imageNamed:@"more_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareothers.alpha = 1.0;
             aishareothers.center = CGPointMake(160,19);
             aishareothers.hidesWhenStopped = YES;
@@ -3593,8 +3590,7 @@
 
 -(void) showAddToDocumentFolderAnimationWithTableview:(UITableView *)tableView IndexPath:(NSIndexPath *)indexPath
 {
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     
     CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
     CGRect button_CGRect = [tableView convertRect:rectInTableView toView:win0];
@@ -4747,7 +4743,6 @@
     
     [myPicker selectRow:presetRow inComponent:0 animated:NO];
     
-    [myPicker setShowsSelectionIndicator:YES];
     self.myPickerView=myPicker;
     [masterview addSubview:myPicker];
     UIViewController *viewcontroller =[[UIViewController alloc]initWithNibName:nil bundle:nil];
@@ -5621,7 +5616,6 @@
     info.duplex=UIPrintInfoDuplexLongEdge;
     info.outputType=UIPrintInfoOutputGrayscale;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;

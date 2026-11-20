@@ -3245,12 +3245,11 @@
 {
     if (assessmentformlistarray.count>1) {
         sender.tag=sender.tag==0?1:0;
-        [UIView beginAnimations:nil context:nil];
-        [UIView setAnimationDuration:0.25];
-        [UIView setAnimationDelegate:self];
-        [UIView setAnimationDidStopSelector:@selector(formlistdidclose)];
-        assessmentformlisttable.frame=CGRectMake(0, sender.tag==0?-assessmentformlisttable.frame.size.height:44, assessmentwidth, /*assessmentformlisttable.frame.size.height-44*/(assessmentformlistarray.count-1)*44);
-        [UIView commitAnimations];
+        [UIView animateWithDuration:0.25 animations:^{
+            assessmentformlisttable.frame=CGRectMake(0, sender.tag==0?-assessmentformlisttable.frame.size.height:44, assessmentwidth, /*assessmentformlisttable.frame.size.height-44*/(assessmentformlistarray.count-1)*44);
+        } completion:^(BOOL finished) {
+            [self formlistdidclose];
+        }];
         
     }
 }
@@ -4096,7 +4095,6 @@
     info.jobName=@"assessment_report.pdf";
     info.duplex=UIPrintInfoDuplexLongEdge;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;

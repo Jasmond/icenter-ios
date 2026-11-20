@@ -2359,7 +2359,6 @@
                             myPicker.tag=802;
                             
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                            [myPicker setShowsSelectionIndicator:YES];
                             myPickerView=myPicker;
                             [datepickerview addSubview:myPicker];
                             
@@ -2759,7 +2758,6 @@
                 myPicker.tag=802;
                 
                 [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                [myPicker setShowsSelectionIndicator:YES];
                 myPickerView=myPicker;
                 [datepickerview addSubview:myPicker];
                 
@@ -3345,7 +3343,7 @@
             [shareimage setImage:[UIImage imageNamed:@"print_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareprint = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareprint.alpha = 1.0;
             aishareprint.center = CGPointMake(160,19);
             aishareprint.hidesWhenStopped = YES;
@@ -3368,7 +3366,7 @@
             [shareimage setImage:[UIImage imageNamed:@"messagegray_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aisendmessage = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aisendmessage = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aisendmessage.alpha = 1.0;
             aisendmessage.center = CGPointMake(160,19);
             aisendmessage.hidesWhenStopped = YES;
@@ -3390,7 +3388,7 @@
             [shareimage setImage:[UIImage imageNamed:@"email2_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareemail = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareemail.alpha = 1.0;
             aishareemail.center = CGPointMake(160,19);
             aishareemail.hidesWhenStopped = YES;
@@ -3411,7 +3409,7 @@
             [shareimage setImage:[UIImage imageNamed:@"more_icon.png"]];
             [cell.contentView addSubview:shareimage];
             
-            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            aishareothers = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
             aishareothers.alpha = 1.0;
             aishareothers.center = CGPointMake(160,19);
             aishareothers.hidesWhenStopped = YES;
@@ -4503,8 +4501,8 @@
                 [header addSubview:label];
                 
                 UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton addTarget:self action:@selector(showpromotioncode:) forControlEvents:UIControlEventTouchUpInside];
                 [header addSubview:showpromotioncodebutton];
                 showpromotioncodebutton.hidden=[DiscountTableMode isEqualToString:@"View"]  || [SalesObject.status isEqualToString:@"Voided"]|| !((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscount|| (!((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscountifpaid && [SalesObject.paid floatValue]!=0);
@@ -4522,8 +4520,8 @@
                 [header addSubview:label];
                 
                 UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton addTarget:self action:@selector(showavailablecoupon:) forControlEvents:UIControlEventTouchUpInside];
                 [header addSubview:showpromotioncodebutton];
                 showpromotioncodebutton.hidden=[DiscountTableMode isEqualToString:@"View"]|| !((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).applycoupon;
@@ -5630,7 +5628,6 @@
     info.jobName=@"iSchool.pdf";
     info.duplex=UIPrintInfoDuplexLongEdge;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;

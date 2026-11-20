@@ -199,7 +199,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -547,8 +547,7 @@
         attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:DetailsViewDTObject.attendance highlightbutton:DetailsViewDTObject.attendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"large"];
     }
     
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     [win0 addSubview:attendanceringview];
     [win0 bringSubviewToFront:attendanceringview];
     lasttouchedsector=0;
@@ -3419,7 +3418,7 @@
     viewhistorybutton=[[UIButton alloc]initWithFrame:CGRectMake(selfViewWidth-45-20, self.view.bounds.size.height-100, 45, 45)];
     viewhistorybutton.backgroundColor=[UIColor lightGrayColor];
     [viewhistorybutton setImage:[UIImage imageNamed:@"history_icon.png"] forState:UIControlStateNormal];
-    [viewhistorybutton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [viewhistorybutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     viewhistorybutton.layer.cornerRadius=viewhistorybutton.frame.size.width/2;
     viewhistorybutton.layer.masksToBounds=YES;
     viewhistorybutton.layer.borderColor=[UIColor darkGrayColor].CGColor;
@@ -3458,7 +3457,7 @@
     UIButton *closeviewhistorybutton=[[UIButton alloc]initWithFrame:CGRectMake(tableview.frame.size.width-40, 0, 35, 35)];
     [closeviewhistorybutton setImage:[UIImage imageNamed:@"closescreengray_icon.png"] forState:UIControlStateNormal];
     [closeviewhistorybutton addTarget:self action:@selector(closeviewhistorybuttonpressed) forControlEvents:UIControlEventTouchUpInside];
-    [closeviewhistorybutton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [closeviewhistorybutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [tableview addSubview:closeviewhistorybutton];
     
     ViewHistoryTable=[[UITableView alloc]initWithFrame:CGRectMake(0, 35, 220, 616) style:UITableViewStylePlain];

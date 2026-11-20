@@ -230,7 +230,7 @@
     
     UIButton *instructorimage=[[UIButton alloc]initWithFrame:CGRectMake(InstructorTableMasterView.frame.size.width-44, 4, 40, 40)];
     [instructorimage setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-    [instructorimage setImageEdgeInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
+    [instructorimage applyImageInsets:UIEdgeInsetsMake(10, 10, 10, 10)];
     [instructorimage addTarget: self action:@selector(InstructorButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
     //[headerView addSubview:instructorimage];
     
@@ -1435,7 +1435,6 @@
                             [myPicker selectRow:presetRow inComponent:0 animated:NO];
                         }
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [datepickerview addSubview:myPicker];
                         [cell.contentView addSubview:datepickerview];
@@ -1524,7 +1523,6 @@
                         [myPicker setDelegate:self];
                         myPicker.tag=801;
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [cell.contentView addSubview:myPicker];
                         
@@ -1833,7 +1831,6 @@
                         [myPicker setDelegate:self];
                         myPicker.tag=801;
                         
-                        [myPicker setShowsSelectionIndicator:YES];
                         self.myPickerView=myPicker;
                         [cell.contentView addSubview:myPicker];
                         
@@ -4109,8 +4106,7 @@
             }
         }
         
-        NSArray * windows = [[UIApplication sharedApplication] windows];
-        UIWindow* win0 = [windows objectAtIndex:0];
+        UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
         
         [win0 addSubview:attendanceringview];
         [win0 bringSubviewToFront:attendanceringview];

@@ -134,8 +134,8 @@
     [sharebutton addTarget: self action:@selector(printtopdf:) forControlEvents: UIControlEventTouchUpInside];
 
     scantotakeattendancebutton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.bounds.size.width-145, 30, 30, 30)];
-    [scantotakeattendancebutton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [scantotakeattendancebutton setImage:[UIImage imageNamed:@"scan_icon.png"] forState:UIControlStateNormal];
+    [scantotakeattendancebutton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [scantotakeattendancebutton addTarget: self action:@selector(scantotakeattendancebuttonpressed) forControlEvents: UIControlEventTouchUpInside];
     
     
@@ -387,7 +387,7 @@
     SelectViewButton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-31, 110, 29, 29)];
     SelectViewButton.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
     [SelectViewButton setImage:[UIImage imageNamed:@"viewbutton.png"] forState:UIControlStateNormal];
-    [SelectViewButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [SelectViewButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     SelectViewButton.layer.cornerRadius=5;
     [SelectViewButton addTarget: self action:@selector(selectviewbuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
     [supermasterview addSubview:SelectViewButton];
@@ -401,7 +401,7 @@
     SortingButton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-62, 110, 29, 29)];
     SortingButton.backgroundColor=[UIColor colorWithRed:4.0/255.0 green:105.0/255.0 blue:120.0/255.0 alpha:1.0];
     [SortingButton setImage:[UIImage imageNamed:@"sortingbutton.png"] forState:UIControlStateNormal];
-    [SortingButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+    [SortingButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     SortingButton.layer.cornerRadius=5;
     [SortingButton addTarget: self action:@selector(sortingbuttonpressed:) forControlEvents: UIControlEventTouchUpInside];
     [supermasterview addSubview:SortingButton];
@@ -414,8 +414,8 @@
     calendarbutton=[[UIButton alloc]initWithFrame:CGRectMake(self.view.frame.size.width-40, datebartable.frame.origin.y, 40, 40)];
     [calendarbutton addTarget:self action:@selector(opencalendar:) forControlEvents:UIControlEventTouchUpInside];
     calendarbutton.backgroundColor=themecolor;
-    [calendarbutton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [calendarbutton setImage:[UIImage imageNamed:@"calendar_icon.png"] forState:UIControlStateNormal];
+    [calendarbutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [supermasterview addSubview:calendarbutton];
     
     
@@ -433,9 +433,8 @@
 
     documentfolderbutton = [UIButton buttonWithType:UIButtonTypeCustom];
     [documentfolderbutton setImage:[UIImage imageNamed:@"documentfolder_icon.png"] forState:UIControlStateNormal];
-    documentfolderbutton.showsTouchWhenHighlighted = YES;
     documentfolderbutton.frame = CGRectMake(60, 28, 30,30);
-    [documentfolderbutton setImageEdgeInsets:UIEdgeInsetsMake(6,1,1,6)];
+    [documentfolderbutton applyImageInsets:UIEdgeInsetsMake(6,1,1,6)];
     documentfolderbutton.layer.cornerRadius=5;
     documentfolderbutton.layer.masksToBounds=YES;
     [documentfolderbutton addTarget:self action:@selector(documentfolderbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -506,7 +505,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -2117,11 +2116,11 @@
         }
         
         //attendance button
-        [cell.button3 setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
         [cell.button3 addTarget: self action:@selector(attendancebuttontouchupinside:) forControlEvents: UIControlEventTouchUpInside];
         [cell.button3 addTarget: self action:@selector(attendancebuttontouchdown:) forControlEvents: UIControlEventTouchDown];
         cell.button3.tag=indexPath.row;
         [cell.button3 setImage:[UIImage imageNamed:[MyClass returnattendanceimagewithclasstype:ClassScheduleObject.classtype attendance:ClassScheduleObject.attendance makeupattendance:ClassScheduleObject.makeupattendance]] forState:UIControlStateNormal];
+        [cell.button3 applyImageInsets:UIEdgeInsetsMake(2, 2, 2, 2)];
         cell.button3.enabled=![MyClass classLocked:ClassScheduleObject.locked];
         
         if ([viewmode isEqualToString:@"lesson"]) {

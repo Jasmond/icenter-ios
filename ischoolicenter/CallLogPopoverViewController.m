@@ -438,7 +438,6 @@
                     presetRow=[self returnuserlistindexwithcalledbyusername:tmpCalledByUsername];
                     
                     [myPicker selectRow:presetRow inComponent:0 animated:NO];
-                    [myPicker setShowsSelectionIndicator:YES];
                     [cell.contentView addSubview:myPicker];
                     
                     cell.selectionStyle = UITableViewCellSelectionStyleNone;

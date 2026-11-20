@@ -405,7 +405,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -4277,7 +4277,6 @@
     info.jobName=@"iSchool.pdf";
     info.duplex=UIPrintInfoDuplexLongEdge;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;
@@ -4382,8 +4381,8 @@
                 [header addSubview:label];
                 
                 UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                 [showpromotioncodebutton addTarget:self action:@selector(showpromotioncode) forControlEvents:UIControlEventTouchUpInside];
                 if (!(!((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscount || (!((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).editdiscountifpaid && isPaid) || isLocked)) {
                     [header addSubview:showpromotioncodebutton];
@@ -4403,8 +4402,8 @@
                 
                 if(((PrivilegeRecord *)[MyClass returnprivilegerecordwithcenterkey:globalvariables.centerrecord.centerkey]).applycoupon){
                     UIButton *showpromotioncodebutton=[[UIButton alloc]initWithFrame:CGRectMake(tableView.frame.size.width-28,22, 28, 20)];
-                    [showpromotioncodebutton setImageEdgeInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                     [showpromotioncodebutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                    [showpromotioncodebutton applyImageInsets:UIEdgeInsetsMake(2.5, 6.5, 2.5, 6.5)];
                     [showpromotioncodebutton addTarget:self action:@selector(showavailablecoupon) forControlEvents:UIControlEventTouchUpInside];
                     [header addSubview:showpromotioncodebutton];
                 }

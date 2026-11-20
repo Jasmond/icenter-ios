@@ -383,7 +383,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
     
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -4605,7 +4605,6 @@
             myPicker.tag=802;
             
             
-            [myPicker setShowsSelectionIndicator:YES];
             
             [cell.contentView addSubview:myPicker];
             
@@ -4613,7 +4612,7 @@
             //FreeScheduleInstructorImageButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
             FreeScheduleInstructorImageButton.frame=CGRectMake(5, 120, 30, 30);
             [FreeScheduleInstructorImageButton setImage:[UIImage imageNamed:@"instructoricon.png"] forState:UIControlStateNormal];
-            [FreeScheduleInstructorImageButton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
+            [FreeScheduleInstructorImageButton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
             [FreeScheduleInstructorImageButton addTarget: self action:@selector(InstructorButtonPressed:) forControlEvents: UIControlEventTouchUpInside];
             [cell.contentView addSubview:FreeScheduleInstructorImageButton];
             

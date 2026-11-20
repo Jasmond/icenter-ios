@@ -2136,8 +2136,8 @@
                 
                 for (int i=0; i<workingStudent.phonearray.count; i++) {
                     pceditbutton=[[UIButton alloc]initWithFrame:CGRectMake(140+(i%maxcontactperline)*contactcellwidth-15, 4+(i/maxcontactperline)*53, 45, 15)];
-                    [pceditbutton setImageEdgeInsets:UIEdgeInsetsMake(0, 15, 0, 15)];
                     [pceditbutton setImage:[UIImage imageNamed:@"paymentoverridebutton.png"] forState:UIControlStateNormal];
+                    [pceditbutton applyImageInsets:UIEdgeInsetsMake(0, 15, 0, 15)];
                     [pceditbutton addTarget:self action:@selector(pceditbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
                     pceditbutton.tag=i;
                     [cell.contentView addSubview:pceditbutton];
@@ -2251,8 +2251,8 @@
                     
                     if (i==workingStudent.phonearray.count-1){
                         pcaddbutton=[[UIButton alloc]initWithFrame:CGRectMake(140+contactcellwidth*(i%maxcontactperline+1)+5, 28+(i/maxcontactperline)*53-5, 15+15, 15+10)];
-                        [pcaddbutton setImageEdgeInsets:UIEdgeInsetsMake(5, 0, 5, 15)];
                         [pcaddbutton setImage:[UIImage imageNamed:@"addphonebutton.png"] forState:UIControlStateNormal];
+                        [pcaddbutton applyImageInsets:UIEdgeInsetsMake(5, 0, 5, 15)];
                         [pcaddbutton addTarget:self action:@selector(pcaddbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
                         pcaddbutton.tag=i;
                         [cell.contentView addSubview:pcaddbutton];

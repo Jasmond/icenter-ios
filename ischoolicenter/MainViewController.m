@@ -3771,7 +3771,7 @@
     activityImageView.tag=808;
     activityImageView.frame=CGRectMake(-10,-10,60,60);
     
-    UIActivityIndicatorView *ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    UIActivityIndicatorView *ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -3848,7 +3848,7 @@
     
     [self viewDidAppear:YES];
     
-    UIViewController *topRootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+    UIViewController *topRootViewController = [MyClass activeWindow].rootViewController;
     while (topRootViewController.presentedViewController)
     {
         topRootViewController = topRootViewController.presentedViewController;

@@ -142,7 +142,7 @@
     ClassSelectionButton.backgroundColor=themecolor;
 //    ClassSelectionButton.titleLabel.font=[UIFont systemFontOfSize:14];
     ClassSelectionButton.layer.cornerRadius=5;
-    [ClassSelectionButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 30, 0, 30)];
+    [ClassSelectionButton applyTitleInsets:UIEdgeInsetsMake(0, 30, 0, 30)];
     [ClassSelectionButton addTarget: self action:@selector(selectclass:) forControlEvents: UIControlEventTouchUpInside];
 //    [EnrollmentClassMenuView addSubview:ClassSelectionButton];
 
@@ -391,7 +391,7 @@
     activityImageView.frame=CGRectMake(0,0,45,45);
     [activityImageView startAnimating];
 
-    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    ailoadindicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     ailoadindicator.alpha = 1.0;
     ailoadindicator.color=[UIColor clearColor];
     ailoadindicator.transform=CGAffineTransformMakeScale(1, 1);
@@ -1148,8 +1148,7 @@
             attendanceringview=[MyClass drawattendanceringwithbutton:sender basebutton:DetailsViewDTObject.attendance highlightbutton:DetailsViewDTObject.attendance attendancebuttonarray:attendancebuttonarray inview:windowview size:@"large"];
         }
         
-        NSArray * windows = [[UIApplication sharedApplication] windows];
-        UIWindow* win0 = [windows objectAtIndex:0];
+        UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
         [win0 addSubview:attendanceringview];
         [win0 bringSubviewToFront:attendanceringview];
         lasttouchedsector=0;
@@ -3109,8 +3108,7 @@
 
 -(void) showAddToDocumentFolderAnimationWithTableview:(UITableView *)tableView IndexPath:(NSIndexPath *)indexPath
 {
-    NSArray * windows = [[UIApplication sharedApplication] windows];
-    UIWindow* win0 = [windows objectAtIndex:0];
+    UIWindow *win0 = self.view.window ?: [MyClass activeWindow];
     
     CGRect rectInTableView = [tableView rectForRowAtIndexPath:indexPath];
     CGRect button_CGRect = [tableView convertRect:rectInTableView toView:win0];
@@ -6553,9 +6551,9 @@
     [SalesView addSubview:background];*/
     
     /*combinepaymentbutton=[[UIButton alloc]initWithFrame:CGRectMake(background.frame.size.width-38, 0,38 , 38)];
-    [combinepaymentbutton setImageEdgeInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     combinepaymentbutton.backgroundColor=[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:0.2];
     [combinepaymentbutton setImage:[UIImage imageNamed:@"addtofolder_icon.png"] forState:UIControlStateNormal];
+    [combinepaymentbutton applyImageInsets:UIEdgeInsetsMake(4, 4, 4, 4)];
     [combinepaymentbutton addTarget: self action:@selector(combinepaymentbuttonpressed) forControlEvents: UIControlEventTouchUpInside];
     [background addSubview:combinepaymentbutton];*/
     
@@ -7432,7 +7430,7 @@
     viewhistorybutton=[[UIButton alloc]initWithFrame:CGRectMake(selfViewWidth-45-20, self.view.bounds.size.height-100, 45, 45)];
     viewhistorybutton.backgroundColor=[UIColor lightGrayColor];
     [viewhistorybutton setImage:[UIImage imageNamed:@"history_icon.png"] forState:UIControlStateNormal];
-    [viewhistorybutton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [viewhistorybutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     viewhistorybutton.layer.cornerRadius=viewhistorybutton.frame.size.width/2;
     viewhistorybutton.layer.masksToBounds=YES;
     viewhistorybutton.layer.borderColor=[UIColor darkGrayColor].CGColor;
@@ -7471,7 +7469,7 @@
     UIButton *closeviewhistorybutton=[[UIButton alloc]initWithFrame:CGRectMake(tableview.frame.size.width-40, 0, 35, 35)];
     [closeviewhistorybutton setImage:[UIImage imageNamed:@"closescreengray_icon.png"] forState:UIControlStateNormal];
     [closeviewhistorybutton addTarget:self action:@selector(closeviewhistorybuttonpressed) forControlEvents:UIControlEventTouchUpInside];
-    [closeviewhistorybutton setImageEdgeInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
+    [closeviewhistorybutton applyImageInsets:UIEdgeInsetsMake(8, 8, 8, 8)];
     [tableview addSubview:closeviewhistorybutton];
     
     ViewHistoryTable=[[UITableView alloc]initWithFrame:CGRectMake(0, 35, 220, self.view.frame.size.height-152) style:UITableViewStylePlain];
@@ -7700,7 +7698,7 @@
     classsortbutton.backgroundColor=[UIColor lightGrayColor];
     [classsortbutton setImage:[UIImage imageNamed:@"sortingbutton.png"] forState:UIControlStateNormal];
     [classsortbutton addTarget:self action:@selector(sortingbuttonpressed:) forControlEvents:UIControlEventTouchUpInside];
-    [classsortbutton setImageEdgeInsets:UIEdgeInsetsMake(6, 6, 6, 6)];
+    [classsortbutton applyImageInsets:UIEdgeInsetsMake(6, 6, 6, 6)];
     [ClassRecordView addSubview:classsortbutton];*/
     
     tablerefresh = [[UIRefreshControl alloc] init];
@@ -11695,7 +11693,6 @@ dictionary=[MyClass addchecksumparameterwithdictionary:dictionary];
     info.jobName=@"iSchool.pdf";
     info.duplex=UIPrintInfoDuplexLongEdge;
     printer.printInfo = info;
-    printer.showsPageRange=YES;
     printer.printingItem=pdfData;
     printer.showsPaperSelectionForLoadedPapers=YES;
     printer.delegate=self;

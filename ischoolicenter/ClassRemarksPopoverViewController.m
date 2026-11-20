@@ -477,7 +477,7 @@
     audioPanGesture.minimumNumberOfTouches = 1;
     audioPanGesture.delegate = self;
     
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionAllowBluetoothA2DP error:nil];
+    [MyClass configurePlayAndRecordAudioSession:nil];
 
     // Choose between heavy, medium, and light for style
     impactFeedbackGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
@@ -3560,11 +3560,13 @@
         
         [newcell.button4 setImage:[UIImage imageNamed:@"pauseicon.png"] forState:UIControlStateNormal];
 //        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error: nil];
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionAllowBluetoothA2DP error:nil];
-        [audioPlayer play];
-        newcell.slider1.maximumValue = audioPlayer.duration;
-        //[[UIDevice currentDevice] setProximityMonitoringEnabled:YES];
-        sliderTimer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(updateSlider) userInfo:nil repeats:YES];
+        UISlider *messageSlider = newcell.slider1;
+        [MyClass configurePlayAndRecordAudioSession:^{
+            [audioPlayer play];
+            messageSlider.maximumValue = audioPlayer.duration;
+            //[[UIDevice currentDevice] setProximityMonitoringEnabled:YES];
+            sliderTimer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(updateSlider) userInfo:nil repeats:YES];
+        }];
     }
 }
 

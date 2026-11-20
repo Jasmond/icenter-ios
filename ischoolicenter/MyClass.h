@@ -319,6 +319,7 @@
 +(void) reloadApp;
 +(NSString *) returnMessageTimeWithMessageStartTime:(NSString *)messagestarttime;
 +(NSString *) returnMessageChannelNameWithChannelCode:(NSString *)channelcode;
++(void) configurePlayAndRecordAudioSession:(void (^)(void))completion;
 +(void) playBeepSoundWithType:(NSString *)type;
 +(void) retrieveunreadmessagecount;
 +(BOOL) stringcontainscharacterwithstring:(NSString *)string character:(NSString *)character;

@@ -15684,6 +15684,19 @@
     return channelcode;
 }
 
++(void) configurePlayAndRecordAudioSession:(void (^)(void))completion
+{
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionAllowBluetoothA2DP error:nil];
+        if (!completion) {
+            return;
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion();
+        });
+    });
+}
+
 +(void) playBeepSoundWithType:(NSString *)type
 {
     GlobalVariables *globalvariables=[GlobalVariables singleObj];

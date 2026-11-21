@@ -521,18 +521,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -797,7 +793,7 @@
             NSIndexPath *indexpath =[classremarkstable indexPathForRowAtPoint:point];
             
             CGRect rectInTableView = [classremarkstable rectForRowAtIndexPath:indexpath];
-            CGFloat offset = rectInTableView.origin.y+rectInTableView.size.height-classremarkstable.frame.size.height;
+            CGFloat offset = rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:classremarkstable];
             if (offset>0) {
                 [classremarkstable setContentOffset:CGPointMake(0, offset) animated:YES];
             }
@@ -807,7 +803,7 @@
             NSIndexPath *indexpath =[assessmenttable indexPathForRowAtPoint:point];
             
             CGRect rectInTableView = [assessmenttable rectForRowAtIndexPath:indexpath];
-            CGFloat offset = rectInTableView.origin.y+rectInTableView.size.height-assessmenttable.frame.size.height;
+            CGFloat offset = rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:assessmenttable];
             if (offset>0) {
                 [assessmenttable setContentOffset:CGPointMake(0, offset) animated:YES];
             }
@@ -2420,7 +2416,8 @@
 //        if (self.preferredContentSize.width!=tablewidth) {
             [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
 //        }
-        remarkstablebottomconstraint.constant=keyboardheight;
+        remarkstablebottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:classremarkstable];
         buttonStackWidthConstraints.constant=tablewidth;
         
     }else if (!extendmasterview.hidden){
@@ -2439,7 +2436,8 @@
         //}
         
 //        self.preferredContentSize=CGSizeMake(assessmentwidth, tableheight);
-        assessmenttablebottomconstraint.constant=keyboardheight;
+        assessmenttablebottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:assessmenttable];
         RemarksToolBar.frame=CGRectMake(0, 20, assessmentwidth, 44);
         buttonStackWidthConstraints.constant=assessmentwidth;
     }
@@ -3321,24 +3319,24 @@
 
 - (BOOL) startAudioSession
 {
-    // Prepare the audio session
-    NSError *error;
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-
-    if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error])
-    {
-        NSLog(@"Error setting session category: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-
-    if (![session setActive:YES error:&error])
-    {
-        NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-    return session.isInputAvailable;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSError *error = nil;
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error]) {
+            NSLog(@"Error setting session category: %@", error.localizedFailureReason);
+            return;
+        }
+        if (@available(iOS 27.0, *)) {
+            [session activateWithOptions:AVAudioSessionActivationOptionNone completionHandler:^(BOOL activated, NSError *activationError) {
+                if (!activated) {
+                    NSLog(@"Error activating audio session: %@", activationError.localizedFailureReason);
+                }
+            }];
+        } else if (![session setActive:YES error:&error]) {
+            NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
+        }
+    });
+    return YES;
 }
 
 

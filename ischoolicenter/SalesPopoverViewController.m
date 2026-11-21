@@ -482,17 +482,13 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -5068,7 +5064,8 @@
         tablewidth=popoverwidth;
     }
 
-    salesPopoverTableBottomConstraint.constant=keyboardheight;
+    salesPopoverTableBottomConstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:SalesPopoverTable];
 //    [SalesPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, tableheight-44-20)];
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
@@ -5735,7 +5732,7 @@
             
             CGRect rectInTableView = [SalesPopoverTable rectForRowAtIndexPath:indexpath];
             
-            [SalesPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-SalesPopoverTable.frame.size.height) animated:YES];
+            [SalesPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:SalesPopoverTable]) animated:YES];
         }
     }
 
@@ -5830,8 +5827,8 @@
         
         CGRect rectInTableView = [SalesPopoverTable rectForRowAtIndexPath:indexpath];
         
-        if (rectInTableView.origin.y+rectInTableView.size.height-SalesPopoverTable.frame.size.height+32>0) {
-            [SalesPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-SalesPopoverTable.frame.size.height+32) animated:YES];
+        if (rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:SalesPopoverTable]+32>0) {
+            [SalesPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:SalesPopoverTable]+32) animated:YES];
         }
     }
 }

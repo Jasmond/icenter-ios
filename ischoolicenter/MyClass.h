@@ -320,6 +320,10 @@
 +(NSString *) returnMessageTimeWithMessageStartTime:(NSString *)messagestarttime;
 +(NSString *) returnMessageChannelNameWithChannelCode:(NSString *)channelcode;
 +(void) configurePlayAndRecordAudioSession:(void (^)(void))completion;
++(CGFloat) keyboardOverlapInView:(UIView *)view notification:(NSNotification *)notification;
++(NSData *) contentsOfURLOffMainThread:(NSURL *)url;
++(void) applyKeyboardContentInset:(CGFloat)inset toView:(UIView *)view;
++(CGFloat) keyboardVisibleHeightForTableView:(UITableView *)tableView;
 +(void) playBeepSoundWithType:(NSString *)type;
 +(void) retrieveunreadmessagecount;
 +(BOOL) stringcontainscharacterwithstring:(NSString *)string character:(NSString *)character;

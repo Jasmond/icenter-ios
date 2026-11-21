@@ -98,18 +98,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -156,9 +152,10 @@
     float tableheight;
     float tablewidth=320;
     
-    tableheight=maxPopupHeight-keyboardheight;
+    tableheight=maxPopupHeight;
 
     [CallLogPopoverTable setFrame:CGRectMake(0, 44+20, tablewidth, tableheight-44-20)];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:CallLogPopoverTable];
 
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
@@ -747,7 +744,7 @@
         
         CGRect rectInTableView = [CallLogPopoverTable rectForRowAtIndexPath:indexpath];
         
-        CGFloat yoffset=rectInTableView.origin.y+rectInTableView.size.height-CallLogPopoverTable.frame.size.height;
+        CGFloat yoffset=rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:CallLogPopoverTable];
         if(yoffset>0){
             [CallLogPopoverTable setContentOffset:CGPointMake(0, yoffset) animated:YES];
         }

@@ -193,18 +193,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 }
 
@@ -1177,7 +1173,12 @@
                     myCell = [[MyTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
                 }
                 
+                myCell.hidden=NO;
                 myCell.textview1.text=workingStaff.remarks;
+                myCell.layoutconstraint1.priority=UILayoutPriorityRequired;
+                if (myCell.layoutconstraint1.constant<33) {
+                    myCell.layoutconstraint1.constant=33;
+                }
                 myCell.selectionStyle = UITableViewCellSelectionStyleNone;
                 return myCell;
             }
@@ -1502,8 +1503,13 @@
                     myCell = [[MyTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
                 }
                 
+                myCell.hidden=NO;
                 myCell.textview1.tag=0;
                 myCell.textview1.text=workingStaff.remarks;
+                myCell.layoutconstraint1.priority=UILayoutPriorityRequired;
+                if (myCell.layoutconstraint1.constant<33) {
+                    myCell.layoutconstraint1.constant=33;
+                }
                 myCell.selectionStyle = UITableViewCellSelectionStyleNone;
                 return myCell;
             }else if (indexPath.section==8){
@@ -2179,11 +2185,12 @@
     MyTableViewCell *newcell=[StaffPopoverTable cellForRowAtIndexPath:indexPath];
     
     CGSize size = [textView sizeThatFits:CGSizeMake(CGRectGetWidth(textView.frame), MAXFLOAT)];
-    if (size.height>100) {
+    CGFloat height = MAX(33, size.height);
+    if (height>100) {
         newcell.layoutconstraint1.constant=100;
         textView.scrollEnabled=YES;
     }else{
-        newcell.layoutconstraint1.constant=size.height;
+        newcell.layoutconstraint1.constant=height;
         textView.scrollEnabled=NO;
     }
     
@@ -2346,8 +2353,10 @@
     }else{
         tablewidth=popoverwidth;
     }
-    stafftablebottomconstraint.constant=keyboardheight;
-    competencytablebottomconstraint.constant=keyboardheight;
+    stafftablebottomconstraint.constant=0;
+    competencytablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:StaffPopoverTable];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:CompetenceTableMasterView];
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
     }

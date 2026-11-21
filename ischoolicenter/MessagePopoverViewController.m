@@ -1248,16 +1248,13 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notif
 {
-    CGSize keyboardSize = [[[notif userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notif];
     [self adjusttablesize];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 }
 
@@ -1417,7 +1414,8 @@
 
 -(void) adjusttablesize
 {
-    tablebottomconstraint.constant=keyboardheight;
+    tablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:MessagePopoverTable];
     
     float tableheight;
     float tablewidth;
@@ -4691,7 +4689,7 @@
     CGPoint point = [textView.superview convertPoint:CGPointZero toView:MessagePopoverTable];
     NSIndexPath *indexpath =[MessagePopoverTable indexPathForRowAtPoint:point];
     CGRect rectInTableView = [MessagePopoverTable rectForRowAtIndexPath:indexpath];
-    CGFloat offset=rectInTableView.origin.y+rectInTableView.size.height-MessagePopoverTable.frame.size.height+(keyboardshow?0:keyboardheight);
+    CGFloat offset=rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:MessagePopoverTable];
     
     
     if(offset>0){

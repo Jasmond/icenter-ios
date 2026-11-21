@@ -95,18 +95,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -825,8 +821,8 @@
         
         CGRect rectInTableView = [ClassroomPopoverTable rectForRowAtIndexPath:indexpath];
         
-        if (rectInTableView.origin.y+rectInTableView.size.height>ClassroomPopoverTable.frame.size.height) {
-            [ClassroomPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-ClassroomPopoverTable.frame.size.height) animated:YES];
+        if (rectInTableView.origin.y+rectInTableView.size.height>[MyClass keyboardVisibleHeightForTableView:ClassroomPopoverTable]) {
+            [ClassroomPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:ClassroomPopoverTable]) animated:YES];
         }
     }
 }
@@ -1015,7 +1011,7 @@
     float tableheight;
     float tablewidth;
     
-    tableheight=maxPopupHeight-keyboardheight;
+    tableheight=maxPopupHeight;
     
     if (showColorCodeTable){
         tablewidth=popoverwidth+colorcodetablewidth;
@@ -1024,6 +1020,7 @@
     }
     
     [ClassroomPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, tableheight-44-20)];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:ClassroomPopoverTable];
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
     }
@@ -1032,6 +1029,7 @@
     
     if (showColorCodeTable){
         [ColorCodeTable setFrame:CGRectMake(0, 44+44+20, colorcodetablewidth, tableheight-44-20)];
+        [MyClass applyKeyboardContentInset:keyboardheight toView:ColorCodeTable];
         ColorCodeTableMasterView.hidden=NO;
     }else{
         ColorCodeTableMasterView.hidden=YES;

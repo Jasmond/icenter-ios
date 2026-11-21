@@ -152,15 +152,13 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notif
 {
-    CGSize keyboardSize = [[[notif userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notif];
     [self adjusttablesize];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 }
 
@@ -553,7 +551,8 @@
 
 -(void) adjusttablesize
 {
-    addclassphotoviewbottomconstraint.constant=keyboardheight;
+    addclassphotoviewbottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:editTable];
     float tablewidth = 0;
     if (showExpiryDate) {
         tablewidth+=expirydatewidth;
@@ -601,7 +600,7 @@
     CGPoint point = [textView.superview convertPoint:CGPointZero toView:editTable];
     NSIndexPath *indexpath =[editTable indexPathForRowAtPoint:point];
     CGRect rectInTableView = [editTable rectForRowAtIndexPath:indexpath];
-    CGFloat offset=rectInTableView.origin.y+rectInTableView.size.height-editTable.frame.size.height+(keyboardshow?0:keyboardheight);
+    CGFloat offset=rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:editTable];
     
     
     if(offset>0){

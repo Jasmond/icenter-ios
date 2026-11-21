@@ -94,8 +94,7 @@
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
     // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -104,8 +103,7 @@
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
     // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -1038,7 +1036,8 @@
 
 -(void) adjusttablesize
 {
-    tablebottomconstraint.constant=keyboardheight;
+    tablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:ProductPopoverTable];
     
     float tableheight;
     float tablewidth=320;
@@ -1396,7 +1395,7 @@
         
         CGRect rectInTableView = [ProductPopoverTable rectForRowAtIndexPath:indexpath];
         
-        [ProductPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-ProductPopoverTable.frame.size.height) animated:YES];
+        [ProductPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:ProductPopoverTable]) animated:YES];
     }
 
 }

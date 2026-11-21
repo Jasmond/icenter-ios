@@ -1040,18 +1040,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -4037,7 +4033,7 @@
         
         CGRect rectInTableView = [DTPopoverTable rectForRowAtIndexPath:indexpath];
         
-        [DTPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-DTPopoverTable.frame.size.height) animated:YES];
+        [DTPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:DTPopoverTable]) animated:YES];
     }
 
 }
@@ -4062,7 +4058,7 @@
         
         CGRect rectInTableView = [DTPopoverTable rectForRowAtIndexPath:indexpath];
         
-        [DTPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-DTPopoverTable.frame.size.height) animated:YES];
+        [DTPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:DTPopoverTable]) animated:YES];
     }
 }
 
@@ -4280,7 +4276,8 @@
       }
     
     
-    [DTPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, tableheight-44-20)];
+    [DTPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, maxPopupHeight-44-20)];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:DTPopoverTable];
 
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];

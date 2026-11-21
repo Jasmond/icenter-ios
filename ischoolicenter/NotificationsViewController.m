@@ -541,8 +541,6 @@
         [headertitleview.topAnchor constraintEqualToAnchor:masterview.topAnchor],
         [headertitleview.heightAnchor constraintEqualToConstant:68],
         
-        [headertitlename.leadingAnchor constraintEqualToAnchor:headertitleview.leadingAnchor],
-        [headertitlename.trailingAnchor constraintEqualToAnchor:headertitleview.trailingAnchor],
         [headertitlename.topAnchor constraintEqualToAnchor:headertitleview.topAnchor constant:25],
         [headertitlename.heightAnchor constraintEqualToConstant:20],
         
@@ -565,7 +563,14 @@
     masterviewButtonTrailing.active = YES;
     
     headerCenterNameWidth = [headercentername.widthAnchor constraintEqualToConstant:0];
-    headerCenterNameCenterX = [headercentername.centerXAnchor constraintEqualToAnchor:headertitleview.centerXAnchor];
+    headerCenterNameCenterX = [headercentername.centerXAnchor constraintEqualToAnchor:headerbar.centerXAnchor];
+    NSLayoutConstraint *headerTitleCenterX = [headertitlename.centerXAnchor constraintEqualToAnchor:headerbar.centerXAnchor];
+    headerTitleCenterX.priority = UILayoutPriorityDefaultHigh;
+    [NSLayoutConstraint activateConstraints:@[
+        headerTitleCenterX,
+        [headertitlename.leadingAnchor constraintGreaterThanOrEqualToAnchor:headertitleview.leadingAnchor],
+        [headertitlename.trailingAnchor constraintLessThanOrEqualToAnchor:headertitleview.trailingAnchor],
+    ]];
     [NSLayoutConstraint activateConstraints:@[
         [headercentername.topAnchor constraintEqualToAnchor:headertitleview.topAnchor constant:43],
         [headercentername.heightAnchor constraintEqualToConstant:22],

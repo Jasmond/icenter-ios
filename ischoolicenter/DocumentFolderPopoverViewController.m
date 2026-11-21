@@ -447,8 +447,7 @@
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
     // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -457,8 +456,7 @@
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
     // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -661,11 +659,8 @@
     //[self openSideWindowWithTable:@"none"];
     
     if (!invoiceview.hidden) {
-        if (keyboardheight==0) {
-            invoiceviewbottomconstraint.constant=0;
-        }else{
-            invoiceviewbottomconstraint.constant=keyboardheight-55;
-        }
+        invoiceviewbottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:invoicetable];
 
         if (documentfolderclassinvoicearray.count+documentfoldersalesinvoicearray.count==0) {
             invoice_noitemlabel.hidden=NO;
@@ -673,11 +668,8 @@
             invoice_noitemlabel.hidden=YES;
         }
     }else if (!receiptview.hidden){
-        if (keyboardheight==0) {
-            receiptviewbottomconstraint.constant=0;
-        }else{
-            receiptviewbottomconstraint.constant=keyboardheight-55;
-        }
+        receiptviewbottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:receipttable];
         
         if (documentfolderclassreceiptarray.count+documentfoldersalesreceiptarray.count==0) {
             receipt_noitemlabel.hidden=NO;
@@ -687,11 +679,8 @@
         
         
     }else if (!paymentview.hidden){
-        if (keyboardheight==0) {
-            paymentviewbottomconstraint.constant=0;
-        }else{
-            paymentviewbottomconstraint.constant=keyboardheight-55;
-        }
+        paymentviewbottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:paymenttable];
         
         if (discounttableview.hidden) {
             [self openSideWindowWithTable:@"none"];

@@ -470,18 +470,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 
 }
@@ -3372,7 +3368,7 @@
         NSIndexPath *indexpath =[ClassPopoverTable indexPathForRowAtPoint:point];
         
         CGRect rectInTableView = [ClassPopoverTable rectForRowAtIndexPath:indexpath];
-        float offset=rectInTableView.origin.y+rectInTableView.size.height-ClassPopoverTable.frame.size.height;
+        float offset=rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:ClassPopoverTable];
         if (offset>0) {
             [ClassPopoverTable setContentOffset:CGPointMake(0, offset) animated:YES];
         }
@@ -3780,7 +3776,8 @@
         tablewidth=popoverwidth;
     }
     
-    classtablebottomconstraint.constant=keyboardheight;
+    classtablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:ClassPopoverTable];
     //[ClassPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, tableheight-44-20)];
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
@@ -3818,7 +3815,8 @@
         NatureTableMasterView.hidden=NO;
         LessonNumberTableMasterView.hidden=YES;
     }else if (showLessonNumberTable){
-        lessonnumbertablebottomconstraint.constant=keyboardheight;
+        lessonnumbertablebottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:LessonNumberTableMasterView];
 //        [NatureTable setFrame:CGRectMake(0, 44+44+20, naturetablewidth, tableheight-44-44-20)];
         InstructorTableMasterView.hidden=YES;
         ClassroomTableMasterView.hidden=YES;
@@ -4319,24 +4317,24 @@
 
 - (BOOL) startAudioSession
 {
-    // Prepare the audio session
-    NSError *error;
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-
-    if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error])
-    {
-        NSLog(@"Error setting session category: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-
-    if (![session setActive:YES error:&error])
-    {
-        NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-    return session.isInputAvailable;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSError *error = nil;
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error]) {
+            NSLog(@"Error setting session category: %@", error.localizedFailureReason);
+            return;
+        }
+        if (@available(iOS 27.0, *)) {
+            [session activateWithOptions:AVAudioSessionActivationOptionNone completionHandler:^(BOOL activated, NSError *activationError) {
+                if (!activated) {
+                    NSLog(@"Error activating audio session: %@", activationError.localizedFailureReason);
+                }
+            }];
+        } else if (![session setActive:YES error:&error]) {
+            NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
+        }
+    });
+    return YES;
 }
 
 

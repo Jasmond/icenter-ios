@@ -8305,6 +8305,49 @@
     
 }
 
++(NSData *) contentsOfURLOffMainThread:(NSURL *)url
+{
+    if (!url) {
+        return nil;
+    }
+    if (![NSThread isMainThread]) {
+        return [NSData dataWithContentsOfURL:url];
+    }
+    // dispatch_sync on a concurrent queue can run the block on the calling thread.
+    // Hop with dispatch_async so the download is not on the main thread.
+    __block NSData *data = nil;
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        data = [NSData dataWithContentsOfURL:url];
+        dispatch_semaphore_signal(semaphore);
+    });
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+    return data;
+}
+
++(void) playPreparedAudioPlayer:(AVAudioPlayer *)player
+{
+    if (!player) {
+        return;
+    }
+    void (^play)(void) = ^{
+        if ([NSThread isMainThread]) {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+                [player play];
+            });
+        } else {
+            [player play];
+        }
+    };
+    if (@available(iOS 27.0, *)) {
+        [[AVAudioSession sharedInstance] activateWithOptions:AVAudioSessionActivationOptionNone completionHandler:^(BOOL activated, NSError *error) {
+            play();
+        }];
+    } else {
+        play();
+    }
+}
+
 +(void) downloadAvatarWithImageview:(UIImageView *)imageview gender:(NSString *)gender type:(NSString *)type avatar:(NSString *)avatar async:(BOOL)async
 {
     GlobalVariables *globalvariables=[GlobalVariables singleObj];
@@ -8349,7 +8392,7 @@
                 if (async) {
                     [imageview sd_setImageWithURL:url placeholderImage:placeholderimage];
                 }else{
-                    UIImage *receivedimage=[[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:url]];
+                    UIImage *receivedimage=[[UIImage alloc] initWithData:[self contentsOfURLOffMainThread:url]];
                     if (receivedimage) {
                         [imageview setImage:receivedimage];
                         [[SDImageCache sharedImageCache] storeImage:receivedimage forKey:[url absoluteString] completion:nil];
@@ -8501,7 +8544,7 @@
                 if (async) {
                     [imageview sd_setImageWithURL:url placeholderImage:placeholderimage];
                 }else{
-                    UIImage *receivedimage=[[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:url]];
+                    UIImage *receivedimage=[[UIImage alloc] initWithData:[self contentsOfURLOffMainThread:url]];
                     if (receivedimage) {
                         [imageview setImage:receivedimage];
                         [[SDImageCache sharedImageCache] storeImage:receivedimage forKey:[url absoluteString] completion:nil];
@@ -13580,7 +13623,7 @@
             globalvariables.audioplayer=[[AVAudioPlayer alloc]initWithContentsOfURL:[NSURL fileURLWithPath:path] error:NULL];
         }
         globalvariables.audioplayer.volume=0.2;
-        [globalvariables.audioplayer play];
+        [MyClass playPreparedAudioPlayer:globalvariables.audioplayer];
     }
 }
 
@@ -15697,6 +15740,49 @@
     });
 }
 
++(CGFloat) keyboardOverlapInView:(UIView *)view notification:(NSNotification *)notification
+{
+    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    if (!view || CGRectIsNull(keyboardFrame) || CGRectIsEmpty(keyboardFrame)) {
+        return 0;
+    }
+    UIWindow *window = view.window ?: [MyClass activeWindow];
+    if (!window) {
+        return 0;
+    }
+    CGRect keyboardInWindow = [window convertRect:keyboardFrame fromWindow:nil];
+    CGRect keyboardInView = [view convertRect:keyboardInWindow fromView:window];
+    CGFloat overlap = CGRectGetMaxY(view.bounds) - CGRectGetMinY(keyboardInView);
+    return MAX(0, MIN(overlap, CGRectGetHeight(view.bounds)));
+}
+
++(void) applyKeyboardContentInset:(CGFloat)inset toView:(UIView *)view
+{
+    if (!view) {
+        return;
+    }
+    if ([view isKindOfClass:[UITableView class]]) {
+        UITableView *tableView = (UITableView *)view;
+        tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        UIEdgeInsets contentInset = tableView.contentInset;
+        contentInset.bottom = MAX(inset, tableView.safeAreaInsets.bottom);
+        tableView.contentInset = contentInset;
+        tableView.scrollIndicatorInsets = contentInset;
+        return;
+    }
+    for (UIView *subview in view.subviews) {
+        [self applyKeyboardContentInset:inset toView:subview];
+    }
+}
+
++(CGFloat) keyboardVisibleHeightForTableView:(UITableView *)tableView
+{
+    if (!tableView) {
+        return 0;
+    }
+    return MAX(0, CGRectGetHeight(tableView.bounds) - tableView.contentInset.bottom);
+}
+
 +(void) playBeepSoundWithType:(NSString *)type
 {
     GlobalVariables *globalvariables=[GlobalVariables singleObj];
@@ -15731,7 +15817,7 @@
     }
     else
     {
-        [globalvariables.audioplayer play];
+        [MyClass playPreparedAudioPlayer:globalvariables.audioplayer];
     }
     
 }

@@ -135,6 +135,9 @@
     
     [self adjusttablesize];
     
+    EnrollmentPopoverTable.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    DetailLessonTable.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidChangeFrame:) name:UIKeyboardDidChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
@@ -444,31 +447,47 @@
 }
 
 
+- (CGFloat)keyboardOverlapForNotification:(NSNotification *)notification
+{
+    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    if (CGRectIsNull(keyboardFrame) || CGRectIsEmpty(keyboardFrame)) {
+        return 0;
+    }
+    UIWindow *window = self.view.window ?: [MyClass activeWindow];
+    if (!window) {
+        return 0;
+    }
+    CGRect keyboardInWindow = [window convertRect:keyboardFrame fromWindow:nil];
+    CGRect keyboardInView = [self.view convertRect:keyboardInWindow fromView:window];
+    CGFloat overlap = CGRectGetMaxY(self.view.bounds) - CGRectGetMinY(keyboardInView);
+    return MAX(0, MIN(overlap, CGRectGetHeight(self.view.bounds)));
+}
+
+- (void)applyKeyboardContentInset
+{
+    UIEdgeInsets inset = UIEdgeInsetsMake(0, 0, keyboardheight, 0);
+    EnrollmentPopoverTable.contentInset = inset;
+    EnrollmentPopoverTable.scrollIndicatorInsets = inset;
+    DetailLessonTable.contentInset = inset;
+    DetailLessonTable.scrollIndicatorInsets = inset;
+}
+
 - (void)keyboardDidHide: (NSNotification *) notification
 {
-    // Do something here
     keyboardheight=0;
     [self adjusttablesize];
-    
 }
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [self keyboardOverlapForNotification:notification];
     [self adjusttablesize];
-    
 }
-
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [self keyboardOverlapForNotification:notification];
     [self adjusttablesize];
-    
 }
 
 - (void)didReceiveMemoryWarning
@@ -11846,8 +11865,12 @@
             NSIndexPath *indexpath =[EnrollmentPopoverTable indexPathForRowAtPoint:point];
             
             CGRect rectInTableView = [EnrollmentPopoverTable rectForRowAtIndexPath:indexpath];
-            
-            [EnrollmentPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-EnrollmentPopoverTable.frame.size.height) animated:YES];
+            CGFloat visibleHeight = EnrollmentPopoverTable.bounds.size.height - EnrollmentPopoverTable.contentInset.bottom;
+            CGFloat offsetY = rectInTableView.origin.y + rectInTableView.size.height - visibleHeight;
+            if (offsetY < 0) {
+                offsetY = 0;
+            }
+            [EnrollmentPopoverTable setContentOffset:CGPointMake(0, offsetY) animated:YES];
         }
     }
 }
@@ -13964,7 +13987,8 @@
         tablewidth=popoverwidth;
     }
 
-    enrollmentTableBottomConstraint.constant=keyboardheight;
+    enrollmentTableBottomConstraint.constant=0;
+    [self applyKeyboardContentInset];
 
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
@@ -13984,10 +14008,10 @@
         ScheduleTableMasterView.hidden=YES;
         DateMasterView.hidden=YES;
         
-        detaillessonbottomconstraint.constant=keyboardheight;
+        detaillessonbottomconstraint.constant=0;
         if (showDLClassDateTable) {
             [DLClassDateTable setFrame:CGRectMake(0, 44+20+44, dlclassdatetablewidth, tableheight-44-20-44)];
-            detaillessonbottomconstraint.constant=keyboardheight;
+            detaillessonbottomconstraint.constant=0;
         }else  if (showDLInstructorTable) {
             [DLInstructorTable setFrame:CGRectMake(0, 44+20+88+3, dlinstructortablewidth, tableheight-44-20-88-3)];
             
@@ -13995,7 +14019,7 @@
                 presetRow=[MyClass returnInstructorIndexWithInstructorArray:filteredAvailableInstructorArray username:[selectedItem isEqualToString:@"DLInstructor"]?FreeScheduleClassObject.instructor:FreeScheduleClassObject.makeupinstructor activeinstructor:YES defaultzeroifnotfound:YES];
                 [DLInstructorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:presetRow inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
             }
-            detaillessonbottomconstraint.constant=keyboardheight;
+            detaillessonbottomconstraint.constant=0;
         }else if (showDLClassroomTable) {
             [DLClassroomTable setFrame:CGRectMake(0, 44+20+88+3, dlclassroomtablewidth, tableheight-44-20-88-3)];
             
@@ -14003,13 +14027,13 @@
                 presetRow=[MyClass returnClassroomIndexWithClassroomArray:FilteredClassroomArray classroom:[selectedItem isEqualToString:@"DLInstructor"]?FreeScheduleClassObject.classroom:FreeScheduleClassObject.makeupclassroom defaultzeroifnotfound:YES];
                 [DLClassroomTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:presetRow inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
             }
-            detaillessonbottomconstraint.constant=keyboardheight;
+            detaillessonbottomconstraint.constant=0;
         }else if (showleaveNatureTable) {
             [leaveNatureTable setFrame:CGRectMake(0, 44+20+44, dlinstructortablewidth, tableheight-44-20-44)];
         }else if (showleaveNatureTable) {
-            detaillessonbottomconstraint.constant=keyboardheight;
+            detaillessonbottomconstraint.constant=0;
         }else{
-            detaillessonbottomconstraint.constant=keyboardheight;
+            detaillessonbottomconstraint.constant=0;
         }
         
         DLClassDateTableMasterView.hidden=showDLClassDateTable?NO:YES;

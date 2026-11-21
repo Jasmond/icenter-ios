@@ -200,6 +200,8 @@
     SubjectToolBar.clipsToBounds=YES;
     SubjectPopoverTable.sectionHeaderHeight=0;
     SubjectPopoverTable.sectionFooterHeight=0;
+    SubjectPopoverTable.estimatedSectionHeaderHeight=44;
+    SubjectPopoverTable.estimatedSectionFooterHeight=18;
     
     //[SubjectPopoverTable reloadData];
     [self adjusttablesize];
@@ -593,9 +595,7 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     ////[self storeTmpField];
     [self adjusttablesize];
     
@@ -603,9 +603,7 @@
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     ////[self storeTmpField];
     [self adjusttablesize];
     
@@ -2081,10 +2079,16 @@
     NSString *headerTitle = [self tableView:tableView titleForHeaderInSection:section];
     
     if (headerTitle) {
-        UIView *header=[[UIView alloc]initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 44)];
+        CGFloat headerHeight = [self tableView:tableView heightForHeaderInSection:section];
+        if (headerHeight < 1) {
+            headerHeight = 44;
+        }
+        UIView *header=[[UIView alloc]initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, headerHeight)];
+        header.clipsToBounds=YES;
         header.backgroundColor=[UIColor systemGroupedBackgroundColor];
         
-        UILabel *label=[[UILabel alloc]initWithFrame:CGRectMake(15, 14, 200, 32)];
+        CGFloat labelHeight = MIN(32, headerHeight);
+        UILabel *label=[[UILabel alloc]initWithFrame:CGRectMake(15, headerHeight-labelHeight, tableView.frame.size.width-30, labelHeight)];
         label.text=[[MyClass returntitlewithtitle:headerTitle] uppercaseString];;
         label.font=[UIFont systemFontOfSize:13];
         label.textColor=[UIColor grayColor];
@@ -2528,6 +2532,9 @@
 
 -(CGFloat)tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
 {
+    if (tableView==SubjectPopoverTable && indexPath.section==9) {
+        return 150;
+    }
     return 38;
 }
 
@@ -10139,17 +10146,21 @@
     }
     
 
-    [SubjectPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, tableheight-44-20)];
+    [SubjectPopoverTable setFrame:CGRectMake(0, 44+20, popoverwidth, maxPopupHeight-44-20)];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:SubjectPopoverTable];
     if (self.preferredContentSize.width!=tablewidth) {
         [self.delegate adjustpresentingviewwidthwithwidth:tablewidth];
     }
     
     self.preferredContentSize=CGSizeMake(tablewidth, tableheight);
-    chatBotSettingsTableBottomConstraint.constant=keyboardheight;
-    
-    leveltuitionmasterviewbottomcontrainst.constant=keyboardheight;
-    gradetuitionmasterviewbottomcontrainst.constant=keyboardheight;
-    schedulelevelmasterviewbottomconstraint.constant=keyboardheight;
+    chatBotSettingsTableBottomConstraint.constant=0;
+    leveltuitionmasterviewbottomcontrainst.constant=0;
+    gradetuitionmasterviewbottomcontrainst.constant=0;
+    schedulelevelmasterviewbottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:chatBotSettingsMasterView];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:LevelTuitionMasterView];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:GradeTuitionMasterView];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:ScheduleLevelMasterView];
     
     if (showCourseSchedule) {
         if ([CourseTableMode isEqualToString:@"View"]) {
@@ -10268,7 +10279,8 @@
         ScheduleLevelMasterView.hidden=YES;
         AutoLevelUpgradeMasterView.hidden=YES;
     }else if (showLessonNumberTable){
-        lessonNumberTableBottomConstraint.constant=keyboardheight;
+        lessonNumberTableBottomConstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:lessonNumberTableMasterView];
         CourseScheduleMasterView.hidden=YES;
         LevelTuitionMasterView.hidden=YES;
         GradeTuitionMasterView.hidden=YES;
@@ -11069,14 +11081,27 @@
             
             CGRect rectInTableView = [chatBotSettingsTable rectForRowAtIndexPath:indexpath];
             
-            [chatBotSettingsTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-chatBotSettingsTable.frame.size.height) animated:YES];
+            [chatBotSettingsTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:chatBotSettingsTable]) animated:YES];
         }else{
             CGPoint point = [textView.superview convertPoint:CGPointZero toView:SubjectPopoverTable];
             NSIndexPath *indexpath =[SubjectPopoverTable indexPathForRowAtPoint:point];
-            
+            if (!indexpath) {
+                return;
+            }
+            [SubjectPopoverTable layoutIfNeeded];
             CGRect rectInTableView = [SubjectPopoverTable rectForRowAtIndexPath:indexpath];
-            
-            [SubjectPopoverTable setContentOffset:CGPointMake(0, rectInTableView.origin.y+rectInTableView.size.height-SubjectPopoverTable.frame.size.height) animated:YES];
+            CGFloat headerHeight = [self tableView:SubjectPopoverTable heightForHeaderInSection:indexpath.section];
+            rectInTableView.origin.y -= headerHeight;
+            rectInTableView.size.height += headerHeight;
+            CGFloat visibleHeight = [MyClass keyboardVisibleHeightForTableView:SubjectPopoverTable];
+            CGFloat offsetY = CGRectGetMaxY(rectInTableView) - visibleHeight;
+            if (offsetY > CGRectGetMinY(rectInTableView)) {
+                offsetY = CGRectGetMinY(rectInTableView);
+            }
+            if (offsetY < 0) {
+                offsetY = 0;
+            }
+            [SubjectPopoverTable setContentOffset:CGPointMake(0, offsetY) animated:YES];
         }
     }
 }
@@ -11726,7 +11751,7 @@
         NSString *strURL=[NSString stringWithFormat:@"%@subjectimages/%@/%@",globalvariables.serverpath,globalvariables.centerrecord.centerdb,obj.subject_image];
         NSURL *url =[NSURL URLWithString:[strURL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
         
-        NSData *data=[[NSData alloc]initWithContentsOfURL:url];
+        NSData *data=[MyClass contentsOfURLOffMainThread:url];
         UIImageView *imageview=[[UIImageView alloc]init];
         imageview.image=[[UIImage alloc] initWithData:data];
         

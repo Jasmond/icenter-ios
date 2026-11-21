@@ -12405,24 +12405,24 @@ dictionary=[MyClass addchecksumparameterwithdictionary:dictionary];
 
 - (BOOL) startAudioSession
 {
-    // Prepare the audio session
-    NSError *error;
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-
-    if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error])
-    {
-        NSLog(@"Error setting session category: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-
-    if (![session setActive:YES error:&error])
-    {
-        NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
-        return NO;
-    }
-
-    return session.isInputAvailable;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSError *error = nil;
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        if (![session setCategory:AVAudioSessionCategoryPlayAndRecord error:&error]) {
+            NSLog(@"Error setting session category: %@", error.localizedFailureReason);
+            return;
+        }
+        if (@available(iOS 27.0, *)) {
+            [session activateWithOptions:AVAudioSessionActivationOptionNone completionHandler:^(BOOL activated, NSError *activationError) {
+                if (!activated) {
+                    NSLog(@"Error activating audio session: %@", activationError.localizedFailureReason);
+                }
+            }];
+        } else if (![session setActive:YES error:&error]) {
+            NSLog(@"Error activating audio session: %@", error.localizedFailureReason);
+        }
+    });
+    return YES;
 }
 
 - (BOOL) startAudioRecording

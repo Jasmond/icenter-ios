@@ -377,9 +377,12 @@
 
 -(void) adjusttablesize
 {
-    tablebottomconstraint.constant=keyboardheight;
-    paymentstatustablebottomconstraint.constant=keyboardheight;
-    producttablebottomconstraint.constant=keyboardheight;
+    tablebottomconstraint.constant=0;
+    paymentstatustablebottomconstraint.constant=0;
+    producttablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:MessagePopoverTable];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:PaymentStatusTable];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:ProductTable];
     
     float tableheight;
     float tablewidth;
@@ -1258,16 +1261,13 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notif
 {
-    CGSize keyboardSize = [[[notif userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notif];
     [self adjusttablesize];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = keyboardSize.height;
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
 }
 

@@ -97,9 +97,7 @@ enum {
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -107,9 +105,7 @@ enum {
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     //[self storeTmpField];
     [self adjusttablesize];
     
@@ -444,8 +440,10 @@ enum {
 
 -(void) adjusttablesize
 {
-    tablebottomconstraint.constant=keyboardheight;
-    studenttablebottomconstraint.constant=keyboardheight;
+    tablebottomconstraint.constant=0;
+    studenttablebottomconstraint.constant=0;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:PointPopoverTable];
+    [MyClass applyKeyboardContentInset:keyboardheight toView:StudentMasterView];
     
     float tableheight;
     float tablewidth=320;

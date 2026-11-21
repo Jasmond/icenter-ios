@@ -324,18 +324,14 @@
 
 - (void)keyboardDidChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification
 {
-    // Get the size of the keyboard.
-    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    keyboardheight = MIN(keyboardSize.height,keyboardSize.width);
+    keyboardheight = [MyClass keyboardOverlapInView:self.view notification:notification];
     [self adjusttablesize];
     
 }
@@ -2415,6 +2411,7 @@
     
     
     tableheight=maxPopupHeight-keyboardheight;
+    [MyClass applyKeyboardContentInset:keyboardheight toView:MakeupTable];
     
     if (showInstructorTable){
         tablewidth=popoverwidth+instructortablewidth;
@@ -2498,7 +2495,8 @@
         //presetRow=[MyClass returnClassroomIndexWithClassroomArray:classroomArray classroom:workingClass.makeupclassroom defaultzeroifnotfound:YES];
         //[NatureTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:presetRow inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
     }else if (showLessonNumberTable){
-        lessonnumbertablebottomconstraint.constant=keyboardheight;
+        lessonnumbertablebottomconstraint.constant=0;
+        [MyClass applyKeyboardContentInset:keyboardheight toView:LessonNumberTable];
         InstructorTableMasterView.hidden=YES;
         SInstructorTableMasterView.hidden=YES;
         ClassroomTableMasterView.hidden=YES;
@@ -2522,7 +2520,7 @@
         NSIndexPath *indexpath =[MakeupTable indexPathForRowAtPoint:point];
         
         CGRect rectInTableView = [MakeupTable rectForRowAtIndexPath:indexpath];
-        CGFloat yoffset=rectInTableView.origin.y+rectInTableView.size.height-MakeupTable.frame.size.height;
+        CGFloat yoffset=rectInTableView.origin.y+rectInTableView.size.height-[MyClass keyboardVisibleHeightForTableView:MakeupTable];
         if(yoffset>0){
             [MakeupTable setContentOffset:CGPointMake(0, yoffset) animated:YES];
         }
